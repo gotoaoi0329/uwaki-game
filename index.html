@@ -30,6 +30,7 @@
     background-color: var(--bg-main);
     color: var(--text-primary);
     height: 100vh;
+    max-height: 100vh;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -135,13 +136,15 @@
     background: #05b04b;
   }
 
-  /* メイングリッド配置（3ペイン・レスポンシブ最適化） */
+  /* メイングリッド配置（完全高さ固定） */
   .main-container {
     display: grid;
     grid-template-columns: 240px 1fr 390px;
-    flex: 1;
+    flex: 1 1 0;
     height: calc(100vh - 60px);
+    max-height: calc(100vh - 60px);
     overflow: hidden;
+    min-height: 0;
   }
 
   /* ペイン共通 */
@@ -152,7 +155,9 @@
     flex-direction: column;
     overflow: hidden;
     height: 100%;
+    max-height: 100%;
     min-width: 0;
+    min-height: 0;
   }
 
   .pane-header {
@@ -170,7 +175,8 @@
 
   /* 左ペイン：チャット一覧 */
   .chat-list {
-    flex: 1;
+    flex: 1 1 0;
+    min-height: 0;
     overflow-y: auto;
   }
 
@@ -309,14 +315,17 @@
     50% { opacity: 0.3; }
   }
 
-  /* 中央ペイン：トーク画面 */
+  /* 中央ペイン：トーク画面（重要：親高さを絶対に超えず、入力欄を常に最下部に固定） */
   .center-pane {
     background: #11141e;
     display: flex;
     flex-direction: column;
     height: 100%;
+    max-height: 100%;
     position: relative;
-    min-width: 0; /* 必須：右ペインを押し出さない */
+    min-width: 0;
+    min-height: 0; /* 必須：はみ出し防止 */
+    overflow: hidden; /* 必須：全体スクロール防止 */
   }
 
   .talk-header {
@@ -328,6 +337,7 @@
     justify-content: space-between;
     flex-shrink: 0;
     gap: 10px;
+    height: 54px;
   }
 
   .talk-header-user {
@@ -350,9 +360,12 @@
     width: 105px;
   }
 
+  /* 過去ログコンテナ（ここだけが縦スクロールする！） */
   .talk-history-container {
-    flex: 1;
-    overflow-y: auto;
+    flex: 1 1 0; /* 高さをflexコンテナに縛る */
+    min-height: 0; /* 必須：中身のテキストが増えても絶対に伸びない！ */
+    overflow-y: auto; /* スクロールバーはこのコンテナ内だけに出る */
+    overflow-x: hidden;
     padding: 14px;
     display: flex;
     flex-direction: column;
@@ -423,7 +436,7 @@
     text-align: right;
   }
 
-  /* チャット入力エリア */
+  /* チャット入力エリア（常に最下部にピン留め） */
   .talk-input-area {
     background: var(--bg-card);
     border-top: 1px solid var(--border-color);
@@ -431,7 +444,9 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    flex-shrink: 0;
+    flex-shrink: 0; /* 絶対に縮まない */
+    position: relative;
+    z-index: 10;
   }
 
   /* テスト用クイック候補 */
@@ -488,15 +503,18 @@
     border-color: var(--accent-line);
   }
 
-  /* 右ペイン：スケジュール帳 ＆ レベルデザイン調整（完全収容設計） */
+  /* 右ペイン：スケジュール帳 ＆ レベルデザイン調整 */
   .right-pane {
     display: flex;
     flex-direction: column;
     height: 100%;
+    max-height: 100%;
     border-right: none;
     width: 390px;
     min-width: 360px;
+    min-height: 0;
     background: #181b26;
+    overflow: hidden;
   }
 
   .tab-bar {
@@ -527,7 +545,8 @@
   }
 
   .tab-content {
-    flex: 1;
+    flex: 1 1 0;
+    min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
     padding: 12px;
@@ -537,7 +556,7 @@
     display: block;
   }
 
-  /* スケジュール帳カレンダー表示（横幅ピッタリ設計） */
+  /* スケジュール帳カレンダー表示 */
   .schedule-header {
     display: flex;
     justify-content: space-between;
@@ -848,8 +867,8 @@
       <!-- 過去ログ -->
     </div>
 
-    <!-- 入力部 -->
-    <div class="talk-input-area">
+    <!-- 入力部（常に下部に固定） -->
+    <div class="talk-input-area" id="talkInputArea">
       <div style="font-size:0.7rem; color:var(--text-secondary); display:flex; justify-content:space-between;">
         <span>💡 クイック返答候補 (クリックで即送信):</span>
         <span style="color:#70a1ff;">直接入力もOK ↵</span>
@@ -1935,8 +1954,16 @@ function renderActiveChat() {
     historyBox.appendChild(row);
   });
 
-  historyBox.scrollTop = historyBox.scrollHeight;
+  // 最下部へスクロール
+  scrollToChatBottom();
   renderQuickReplies(char);
+}
+
+function scrollToChatBottom() {
+  const historyBox = document.getElementById('talkHistory');
+  if (historyBox) {
+    historyBox.scrollTop = historyBox.scrollHeight;
+  }
 }
 
 function renderQuickReplies(char) {
