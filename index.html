@@ -1,0 +1,1976 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>浮気ゲーム - レベルデザイン検証プロトタイプ</title>
+<style>
+  :root {
+    --bg-main: #0f1117;
+    --bg-card: #1a1d27;
+    --bg-card-hover: #242938;
+    --accent-line: #06c755;
+    --accent-red: #ff4757;
+    --accent-warn: #ffa502;
+    --accent-blue: #3742fa;
+    --accent-purple: #9b59b6;
+    --text-primary: #f1f2f6;
+    --text-secondary: #a4b0be;
+    --border-color: #2f3542;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ヘッダー・FNAF状況バー */
+  header {
+    background: #141722;
+    border-bottom: 2px solid var(--border-color);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    height: 60px;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .app-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #fff;
+  }
+
+  .badge-ai {
+    background: #e74c3c;
+    color: #fff;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: normal;
+  }
+
+  .game-clock-container {
+    background: #000;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid #333;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-family: monospace;
+  }
+
+  .clock-display {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #2ecc71;
+    letter-spacing: 1px;
+  }
+
+  .timer-desc {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .btn:hover {
+    background: var(--bg-card-hover);
+    border-color: #57606f;
+  }
+  .btn-primary {
+    background: var(--accent-line);
+    color: #fff;
+    border: none;
+    font-weight: bold;
+  }
+  .btn-primary:hover {
+    background: #05b04b;
+  }
+  .btn-danger {
+    background: var(--accent-red);
+    color: #fff;
+    border: none;
+  }
+
+  /* メイングリッド配置（3ペイン） */
+  .main-container {
+    display: grid;
+    grid-template-columns: 290px 1fr 360px;
+    flex: 1;
+    height: calc(100vh - 60px);
+    overflow: hidden;
+  }
+
+  /* ペイン共通 */
+  .pane {
+    background: var(--bg-card);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: 100%;
+  }
+
+  .pane-header {
+    padding: 10px 14px;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: var(--text-secondary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* 左ペイン：チャット一覧 */
+  .chat-list {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .chat-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    position: relative;
+    transition: background 0.15s;
+    gap: 12px;
+  }
+  .chat-item:hover {
+    background: var(--bg-card-hover);
+  }
+  .chat-item.active {
+    background: #252b3b;
+    border-left: 4px solid var(--accent-line);
+  }
+
+  .avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #4b6584;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .badge-unread {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: var(--accent-red);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: bold;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    box-shadow: 0 0 6px rgba(255, 71, 87, 0.8);
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+
+  .chat-item-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .chat-item-top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  .char-name {
+    font-weight: bold;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .char-role-tag {
+    font-size: 0.65rem;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: #2f3542;
+    color: #ced6e0;
+    margin-left: 4px;
+  }
+
+  .chat-last-msg {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ゲージバー表示 */
+  .gauges-mini {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-top: 5px;
+  }
+
+  .gauge-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.65rem;
+  }
+
+  .gauge-label {
+    width: 44px;
+    color: var(--text-secondary);
+  }
+
+  .gauge-bar-bg {
+    flex: 1;
+    height: 6px;
+    background: #2f3542;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .gauge-fill {
+    height: 100%;
+    transition: width 0.3s ease, background-color 0.3s ease;
+  }
+
+  .fill-patience { background: var(--accent-warn); }
+  .fill-patience.danger { background: var(--accent-red); animation: blink 0.5s infinite; }
+  .fill-trust { background: var(--accent-line); }
+  .fill-trust.danger { background: var(--accent-red); }
+
+  @keyframes blink {
+    50% { opacity: 0.3; }
+  }
+
+  /* 中央ペイン：トーク画面 */
+  .center-pane {
+    background: #11141e;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+  }
+
+  .talk-header {
+    padding: 10px 16px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .talk-header-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .talk-header-gauges {
+    display: flex;
+    gap: 16px;
+  }
+
+  .talk-header-gauge-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 110px;
+  }
+
+  .talk-history-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .history-divider {
+    text-align: center;
+    position: relative;
+    margin: 8px 0;
+  }
+  .history-divider span {
+    background: #1a1e2c;
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+  }
+
+  /* メッセージ吹き出し */
+  .msg-row {
+    display: flex;
+    gap: 8px;
+    max-width: 80%;
+  }
+
+  .msg-row.incoming {
+    align-self: flex-start;
+  }
+
+  .msg-row.outgoing {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+  }
+
+  .msg-bubble {
+    padding: 9px 13px;
+    border-radius: 14px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    position: relative;
+    word-break: break-word;
+  }
+
+  .msg-row.incoming .msg-bubble {
+    background: #242b3d;
+    color: #f1f2f6;
+    border-top-left-radius: 2px;
+  }
+
+  .msg-row.outgoing .msg-bubble {
+    background: var(--accent-line);
+    color: #fff;
+    border-top-right-radius: 2px;
+  }
+
+  .msg-meta {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+  }
+
+  .msg-row.outgoing .msg-meta {
+    text-align: right;
+  }
+
+  /* チャット入力エリア */
+  .talk-input-area {
+    background: var(--bg-card);
+    border-top: 1px solid var(--border-color);
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  /* テスト用クイック候補 */
+  .quick-reply-bar {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .quick-reply-btn {
+    background: #252b3d;
+    border: 1px solid var(--border-color);
+    color: #ced6e0;
+    padding: 5px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .quick-reply-btn:hover {
+    background: #3742fa;
+    color: #fff;
+    border-color: #3742fa;
+  }
+  .quick-reply-btn.trap-name {
+    border-color: rgba(231, 76, 60, 0.5);
+    color: #ff6b6b;
+  }
+  .quick-reply-btn.trap-schedule {
+    border-color: rgba(243, 156, 18, 0.5);
+    color: #f39c12;
+  }
+
+  .input-form {
+    display: flex;
+    gap: 10px;
+  }
+
+  .text-input {
+    flex: 1;
+    background: #11141e;
+    border: 1px solid var(--border-color);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    outline: none;
+  }
+  .text-input:focus {
+    border-color: var(--accent-line);
+  }
+
+  /* 右ペイン：スケジュール帳 ＆ レベルデザイン調整 */
+  .right-pane {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border-right: none;
+  }
+
+  .tab-bar {
+    display: flex;
+    background: rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 9px;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: bold;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .tab-btn.active {
+    color: var(--accent-line);
+    border-bottom-color: var(--accent-line);
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .tab-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: none;
+  }
+  .tab-content.active {
+    display: block;
+  }
+
+  /* スケジュール帳カレンダー表示 */
+  .schedule-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .schedule-mode-select {
+    background: #252b3d;
+    border: 1px solid var(--border-color);
+    color: #fff;
+    font-size: 0.75rem;
+    padding: 3px 6px;
+    border-radius: 4px;
+  }
+
+  .schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.72rem;
+    text-align: center;
+  }
+
+  .schedule-table th, .schedule-table td {
+    border: 1px solid var(--border-color);
+    padding: 6px 2px;
+  }
+
+  .schedule-table th {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+  }
+
+  .slot-busy-work {
+    background: rgba(231, 76, 60, 0.25);
+    color: #ff6b6b;
+    font-weight: bold;
+  }
+
+  .slot-busy-date {
+    background: rgba(155, 89, 182, 0.25);
+    color: #d29be2;
+    font-weight: bold;
+  }
+
+  .slot-free {
+    background: rgba(46, 204, 113, 0.1);
+    color: #2ecc71;
+  }
+
+  .schedule-legend {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .legend-box {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+
+  /* レベルデザイン調整パネル */
+  .debug-group {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 12px;
+  }
+
+  .debug-title {
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: var(--accent-warn);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .param-row {
+    margin-bottom: 8px;
+  }
+  .param-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    margin-bottom: 3px;
+  }
+  .param-slider {
+    width: 100%;
+    accent-color: var(--accent-line);
+    cursor: pointer;
+  }
+
+  .preset-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .btn-preset {
+    font-size: 0.75rem;
+    padding: 6px;
+    border-radius: 4px;
+    background: #252b3d;
+    border: 1px solid var(--border-color);
+    color: #f1f2f6;
+    cursor: pointer;
+  }
+  .btn-preset:hover {
+    background: #3742fa;
+    color: #fff;
+  }
+
+  /* ログ表示エリア */
+  .event-log-container {
+    background: #0b0d13;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 6px;
+    height: 140px;
+    overflow-y: auto;
+    font-family: monospace;
+    font-size: 0.7rem;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .log-entry {
+    line-height: 1.3;
+  }
+  .log-warn { color: var(--accent-warn); }
+  .log-danger { color: var(--accent-red); font-weight: bold; }
+  .log-success { color: #2ecc71; }
+  .log-info { color: #70a1ff; }
+
+  /* ゲームオーバー/クリアモーダル */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .modal-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 460px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+
+  .modal-title {
+    font-size: 1.6rem;
+    font-weight: bold;
+    margin-bottom: 12px;
+  }
+  .title-gameover { color: var(--accent-red); }
+  .title-clear { color: #2ecc71; }
+
+  .modal-desc {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+
+  .modal-stats {
+    background: #11141e;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 20px;
+    font-size: 0.85rem;
+    text-align: left;
+  }
+
+  /* 画面揺れエフェクト */
+  .shake {
+    animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+  }
+  @keyframes shake {
+    10%, 90% { transform: translate3d(-2px, 0, 0); }
+    20%, 80% { transform: translate3d(4px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+    40%, 60% { transform: translate3d(6px, 0, 0); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<header>
+  <div class="header-left">
+    <div class="app-title">
+      <span>📱 浮気ゲーム</span>
+      <span class="badge-ai">AI代理返信プロトタイプ</span>
+    </div>
+    <div class="game-clock-container">
+      <div class="clock-display" id="clockDisplay">21:30</div>
+      <div>
+        <div style="color:#ced6e0; font-size:0.8rem; font-weight:bold;">主人帰宅: 24:00</div>
+        <div class="timer-desc" id="timerRemainDesc">残り 5分00秒 (300秒)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <button class="btn" id="btnTogglePause">⏸️ 一時停止</button>
+    <button class="btn btn-primary" id="btnRestart">🔄 最初から</button>
+  </div>
+</header>
+
+<!-- メインコンテンツ -->
+<div class="main-container" id="mainContainer">
+
+  <!-- 左ペイン: トーク一覧 -->
+  <div class="pane">
+    <div class="pane-header">
+      <span>トーク一覧 (3人並行)</span>
+      <span id="unreadTotalBadge" style="color:var(--accent-red); font-size:0.75rem;">未読 0件</span>
+    </div>
+    <div class="chat-list" id="chatListContainer">
+      <!-- JSで動的生成 -->
+    </div>
+  </div>
+
+  <!-- 中央ペイン: トーク詳細 -->
+  <div class="center-pane">
+    <div class="talk-header" id="talkHeader">
+      <div class="talk-header-user">
+        <div class="avatar" id="activeAvatar">👩‍💼</div>
+        <div>
+          <div style="font-weight:bold; font-size:1.05rem;" id="activeName">佐々木 玲奈 (女上司)</div>
+          <div style="font-size:0.75rem; color:var(--text-secondary);" id="activeSubtitle">ロジカル系・朝型フレックス</div>
+        </div>
+      </div>
+      <div class="talk-header-gauges">
+        <div class="talk-header-gauge-item">
+          <div style="display:flex; justify-content:space-between; font-size:0.75rem;">
+            <span>Patience (苛立ち)</span>
+            <span id="activePatienceVal">5 / 5</span>
+          </div>
+          <div class="gauge-bar-bg">
+            <div class="gauge-fill fill-patience" id="activePatienceBar" style="width: 100%;"></div>
+          </div>
+        </div>
+        <div class="talk-header-gauge-item">
+          <div style="display:flex; justify-content:space-between; font-size:0.75rem;">
+            <span>Trust (信頼)</span>
+            <span id="activeTrustVal">5 / 5</span>
+          </div>
+          <div class="gauge-bar-bg">
+            <div class="gauge-fill fill-trust" id="activeTrustBar" style="width: 100%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- チャットログ -->
+    <div class="talk-history-container" id="talkHistory">
+      <!-- 過去ログと最新着信メッセージ -->
+    </div>
+
+    <!-- 入力部 -->
+    <div class="talk-input-area">
+      <div style="font-size:0.72rem; color:var(--text-secondary); display:flex; justify-content:space-between;">
+        <span>💡 レベルデザイン検証用クイック返答テストボタン (クリックで即送信):</span>
+        <span style="color:#70a1ff;">自由入力も可能 ↵</span>
+      </div>
+      <div class="quick-reply-bar" id="quickReplyBar">
+        <!-- JSで動的生成 -->
+      </div>
+      <form class="input-form" id="chatInputForm">
+        <input type="text" class="text-input" id="chatInput" placeholder="メッセージを入力...（例: ごめん、その日は仕事なんだ / 空いてるよ！）" autocomplete="off">
+        <button type="submit" class="btn btn-primary">送信</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 右ペイン: スケジュール帳 & レベルデザイン調整 -->
+  <div class="pane right-pane">
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="tabSchedule">📅 スケジュール帳</button>
+      <button class="tab-btn" data-tab="tabDebug">⚙️ レベルデザイン調整</button>
+      <button class="tab-btn" data-tab="tabLog">📜 デバッグログ</button>
+    </div>
+
+    <!-- タブ1: スケジュール帳 -->
+    <div class="tab-content active" id="tabSchedule">
+      <div class="schedule-header">
+        <span style="font-weight:bold; font-size:0.85rem;">週間予定表 (時刻の正本)</span>
+        <select class="schedule-mode-select" id="scheduleLevelSelect">
+          <option value="level1">Level 1: 昼・夜 (13枠)</option>
+          <option value="level2">Level 2: 朝・昼・夜 (21枠)</option>
+          <option value="level3">Level 3: 午前・昼・午後・夜・晩</option>
+        </select>
+      </div>
+
+      <div id="scheduleTableWrapper">
+        <!-- JSで表を動的生成 -->
+      </div>
+
+      <div class="schedule-legend">
+        <div class="legend-item"><div class="legend-box" style="background:#ff4757;"></div> 仕事(確定)</div>
+        <div class="legend-item"><div class="legend-box" style="background:#9b59b6;"></div> 他の約束</div>
+        <div class="legend-item"><div class="legend-box" style="background:#2ecc71;"></div> 空き</div>
+      </div>
+
+      <div style="margin-top:14px; padding:10px; background:rgba(0,0,0,0.25); border-radius:6px; font-size:0.75rem; line-height:1.4; color:var(--text-secondary);">
+        <b style="color:#fff;">📌 スケジュール確認のルール:</b><br>
+        ・主人公はフルフレックス勤務。仕事の予定は動かせません。<br>
+        ・既に埋まっている枠に「空いてるよ」と返答すると<b>予定衝突 (大ダメ Trust -2)</b>！<br>
+        ・空いている枠なら「OK、大丈夫」で<b>合意成立 (Trust維持)</b>。
+      </div>
+    </div>
+
+    <!-- タブ2: レベルデザイン調整パネル -->
+    <div class="tab-content" id="tabDebug">
+      <div class="debug-group">
+        <div class="debug-title">
+          <span>🎮 難易度プリセット</span>
+        </div>
+        <div class="preset-buttons">
+          <button class="btn-preset" onclick="applyPreset('memoStandard')">📝 手書きメモ標準</button>
+          <button class="btn-preset" onclick="applyPreset('easy')">🌱 ゆったり検証</button>
+          <button class="btn-preset" onclick="applyPreset('hard')">🔥 修羅場(高密度)</button>
+          <button class="btn-preset" onclick="applyPreset('speed3x')">⏩ 3倍速テスト</button>
+        </div>
+      </div>
+
+      <div class="debug-group">
+        <div class="debug-title">
+          <span>⏱️ 時間・タイマー設定</span>
+          <span id="lblSpeed">1.0x</span>
+        </div>
+        <div class="param-row">
+          <div class="param-label"><span>ゲーム進行速度</span><span id="valSpeed">1.0倍</span></div>
+          <input type="range" class="param-slider" id="sldSpeed" min="0.5" max="5.0" step="0.5" value="1.0">
+        </div>
+        <div class="param-row">
+          <div class="param-label"><span>着信平均インターバル</span><span id="valInterval">18秒</span></div>
+          <input type="range" class="param-slider" id="sldInterval" min="5" max="40" step="1" value="18">
+        </div>
+      </div>
+
+      <div class="debug-group">
+        <div class="debug-title">
+          <span>⏳ 放置ペナルティ設定 (手書きメモ準拠)</span>
+        </div>
+        <div class="param-row">
+          <div class="param-label"><span>初手放置猶予 (Patience -1まで)</span><span id="valFirstWait">20秒</span></div>
+          <input type="range" class="param-slider" id="sldFirstWait" min="5" max="45" step="1" value="20">
+        </div>
+        <div class="param-row">
+          <div class="param-label"><span>追撃放置間隔 (次の -1まで)</span><span id="valNextWait">10秒</span></div>
+          <input type="range" class="param-slider" id="sldNextWait" min="3" max="25" step="1" value="10">
+        </div>
+      </div>
+
+      <div class="debug-group">
+        <div class="debug-title">
+          <span>💔 ダメージ設定</span>
+        </div>
+        <div class="param-row">
+          <div class="param-label"><span>Patience 0時のTrustダメージ</span><span id="valPatienceZeroDmg">-1</span></div>
+          <input type="range" class="param-slider" id="sldPatienceZeroDmg" min="1" max="3" step="1" value="1">
+        </div>
+        <div class="param-row">
+          <div class="param-label"><span>予定衝突のTrustダメージ</span><span id="valScheduleConflictDmg">-2</span></div>
+          <input type="range" class="param-slider" id="sldScheduleConflictDmg" min="1" max="5" step="1" value="2">
+        </div>
+      </div>
+
+      <div class="debug-group">
+        <div class="debug-title">
+          <span>👥 会話相手キャラクター設定 (メモ準拠)</span>
+        </div>
+        <div style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:6px;">
+          現在アクティブな3人:
+        </div>
+        <div id="activeCharBadges" style="display:flex; flex-direction:column; gap:4px; font-size:0.75rem;">
+          <!-- 動的生成 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- タブ3: デバッグログ -->
+    <div class="tab-content" id="tabLog">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-weight:bold; font-size:0.8rem;">システム & イベントログ</span>
+        <button class="btn" style="padding:2px 6px; font-size:0.7rem;" onclick="clearLogs()">クリア</button>
+      </div>
+      <div class="event-log-container" id="eventLogContainer">
+        <!-- ログ出力 -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- モーダル: ゲームオーバー / クリア -->
+<div class="modal-overlay" id="endModal">
+  <div class="modal-card">
+    <div class="modal-title" id="modalTitle">破局（GAME OVER）</div>
+    <div class="modal-desc" id="modalDesc">
+      佐々木 玲奈の信頼度(Trust)が0になりました。
+    </div>
+    <div class="modal-stats" id="modalStats">
+      <!-- 統計情報 -->
+    </div>
+    <button class="btn btn-primary" style="width:100%; justify-content:center; padding:10px;" onclick="restartGame()">もう一度挑戦する</button>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   Web Audio API による効果音ジェネレータ（外部ファイル不要）
+   ========================================================================= */
+const SoundEffect = {
+  ctx: null,
+  init() {
+    if (!this.ctx) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      this.ctx = new AudioContext();
+    }
+  },
+  playTone(freq, duration, type = 'sine', delay = 0) {
+    try {
+      this.init();
+      const now = this.ctx.currentTime + delay;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, now);
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + duration);
+    } catch(e) {}
+  },
+  notify() {
+    // ピロン♪
+    this.playTone(880, 0.08, 'sine', 0);
+    this.playTone(1320, 0.15, 'sine', 0.08);
+  },
+  damage() {
+    // ブブー！
+    this.playTone(180, 0.25, 'sawtooth', 0);
+    this.playTone(140, 0.35, 'sawtooth', 0.15);
+  },
+  critical() {
+    // 即死・警告
+    this.playTone(100, 0.6, 'square', 0);
+  },
+  success() {
+    // ポロン♪
+    this.playTone(523.25, 0.1, 'sine', 0);
+    this.playTone(659.25, 0.1, 'sine', 0.1);
+    this.playTone(783.99, 0.2, 'sine', 0.2);
+  },
+  clear() {
+    // クリアファンファーレ
+    [523.25, 659.25, 783.99, 1046.5].forEach((f, idx) => {
+      this.playTone(f, 0.2, 'triangle', idx * 0.12);
+    });
+  }
+};
+
+/* =========================================================================
+   ゲームデータ定義（手書きメモ最新仕様準拠）
+   ========================================================================= */
+const CHARACTERS = [
+  {
+    id: 'boss',
+    name: '佐々木 玲奈',
+    roleName: '女上司 (ロジカル系)',
+    avatar: '👩‍💼',
+    type: 'logical',
+    bio: '事務的な会話中心。意識高い朝型フレックス。返信には寛容だが予定の不整合に厳しい。',
+    paramProfile: { patienceRate: 0.6, trustLossMultiplier: 1.5 }, // P減りにくい、T減りやすい
+    initialTrust: 5,
+    initialPatience: 5,
+    history: [
+      { sender: 'incoming', text: '佐々木です。明日の10時からの企画会議、アジェンダ確認しておいてね。', time: '17:30' },
+      { sender: 'outgoing', text: '承知いたしました。確認しておきます。', time: '17:35' },
+      { sender: 'incoming', text: 'あと、来週の水曜夜は課の懇親会だけど、あなた空いてる？', time: '18:10' },
+      { sender: 'outgoing', text: '水曜夜ですね、予定確認しておきます！', time: '18:15' },
+      { sender: 'incoming', text: 'よろしく。仕事の納期と予定管理だけはきっちりしてね。', time: '19:00' }
+    ],
+    // 着信シナリオキュー（時間経過やイベントで投下）
+    dialogueTree: [
+      {
+        triggerTimeSec: 15,
+        msg: 'まだ起きてる？さっき言ってた来週水曜の夜、予定どうなってるか教えて。',
+        targetSlot: { day: '水', time: '夜' }, // スケジュールチェック対象
+        type: 'schedule_check',
+        replies: [
+          { label: '水曜夜は空いてます！大丈夫です！', type: 'schedule_ans', day: '水', time: '夜', answer: true },
+          { label: '申し訳ありません、水曜夜は先約（仕事）が入っています', type: 'schedule_ans', day: '水', time: '夜', answer: false },
+          { label: 'あかりちゃん、ちょっと待ってね！', type: 'trap_name', targetName: 'あかり' },
+          { label: '了解です〜適当に合わせます！', type: 'tone_mismatch' }
+        ]
+      },
+      {
+        triggerTimeSec: 60,
+        msg: 'そういえば来週の金曜の夜、残業終わりにご飯どう？美味しいイタリアン予約できるけど。',
+        targetSlot: { day: '金', time: '夜' },
+        type: 'schedule_check',
+        replies: [
+          { label: '金曜夜、ぜひ行きたいです！空いてます！', type: 'schedule_ans', day: '金', time: '夜', answer: true },
+          { label: 'すみません、金曜夜は別の予定が入ってまして…', type: 'schedule_ans', day: '金', time: '夜', answer: false },
+          { label: '栞ちゃん、行こう行こう！', type: 'trap_name', targetName: '栞' },
+          { label: '玲奈さん、仕事の納期調整も終わりました', type: 'safe_work' }
+        ]
+      },
+      {
+        triggerTimeSec: 120,
+        msg: '返信読んだ？仕事できる人ってレスもスケジュール管理も早いと思うのよね。',
+        type: 'press',
+        replies: [
+          { label: 'はい、タスク整理してすぐ返します！', type: 'safe' },
+          { label: 'そんな怒んないでよ〜w', type: 'tone_mismatch' },
+          { label: '私は主人の代理返信AIです。', type: 'trap_ai' }
+        ]
+      },
+      {
+        triggerTimeSec: 180,
+        msg: '土曜の昼はフレックスでオフィス行く予定だけど、あなたも書類整理手伝えない？',
+        targetSlot: { day: '土', time: '昼' },
+        type: 'schedule_check',
+        replies: [
+          { label: '土曜昼ですね、大丈夫です！', type: 'schedule_ans', day: '土', time: '昼', answer: true },
+          { label: '土曜昼はあいにく予定が入っております…', type: 'schedule_ans', day: '土', time: '昼', answer: false },
+          { label: 'あかりちゃん、土曜は無理だよ〜', type: 'trap_name', targetName: 'あかり' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'childhood',
+    name: '小林 栞',
+    roleName: '幼馴染 (ふつうより)',
+    avatar: '👧',
+    type: 'childhood',
+    bio: '昔の話をよくする。過去ログ確認が必須。一般職なので平日夕方〜土日暇。TRUSTが減りづらい。',
+    paramProfile: { patienceRate: 1.0, trustLossMultiplier: 0.7 }, // T減りにくい
+    initialTrust: 5,
+    initialPatience: 5,
+    history: [
+      { sender: 'incoming', text: 'ねーねー、実家からリンゴ送られてきたよ！おすそ分けしよっか？', time: '16:00' },
+      { sender: 'outgoing', text: 'お、リンゴ！ありがと！栞の実家のみかんも美味しかったよね。', time: '16:05' },
+      { sender: 'incoming', text: 'みかんじゃなくて柿でしょ！笑 相変わらず記憶あやふやなんだからー', time: '16:10' },
+      { sender: 'outgoing', text: 'あ、柿かw ごめんごめん！', time: '16:12' },
+      { sender: 'incoming', text: '昔よく行った駅前の駄菓子屋、今週の土曜夜に近く通るかも！', time: '18:20' }
+    ],
+    dialogueTree: [
+      {
+        triggerTimeSec: 30,
+        msg: 'ねー、今週の土曜の夜って暇？久しぶりに駅前でご飯でも食べない？',
+        targetSlot: { day: '土', time: '夜' },
+        type: 'schedule_check',
+        replies: [
+          { label: '土曜夜空いてるよ！行こう！', type: 'schedule_ans', day: '土', time: '夜', answer: true },
+          { label: '土曜夜はちょっと仕事の予定が入ってて…ごめん！', type: 'schedule_ans', day: '土', time: '夜', answer: false },
+          { label: '玲奈さん、土曜夜了解です！', type: 'trap_name', targetName: '玲奈' },
+          { label: '懐かしいね、昔よく駄菓子屋行ったもんね', type: 'safe_memory' }
+        ]
+      },
+      {
+        triggerTimeSec: 80,
+        msg: 'そういえば私たちが小学生のとき飼ってたインコの名前、何だっけ？急に思い出せなくて笑',
+        type: 'memory_check',
+        replies: [
+          { label: 'ピーちゃんでしょ！', type: 'correct_memory' },
+          { label: 'ポチだっけ？', type: 'wrong_memory' },
+          { label: 'あかりちゃん、そんなのいたっけ？', type: 'trap_name', targetName: 'あかり' }
+        ]
+      },
+      {
+        triggerTimeSec: 140,
+        msg: '日曜日のお昼、もし空いてたら実家のリンゴ届けに行ってもいい？',
+        targetSlot: { day: '日', time: '昼' },
+        type: 'schedule_check',
+        replies: [
+          { label: '日曜昼なら空いてるよ！待ってるね', type: 'schedule_ans', day: '日', time: '昼', answer: true },
+          { label: '日曜昼は用事があって留守にしてるんだ…', type: 'schedule_ans', day: '日', time: '昼', answer: false },
+          { label: 'リンゴ楽しみにしてる！', type: 'safe' }
+        ]
+      },
+      {
+        triggerTimeSec: 200,
+        msg: 'おーい！生きてるー？既読スルーは幼馴染として許さんぞー！笑',
+        type: 'press',
+        replies: [
+          { label: 'ごめんごめん！ちょっと電話してた！', type: 'safe' },
+          { label: '私はAIアシスタントです。', type: 'trap_ai' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'gal',
+    name: 'あかり',
+    roleName: '夜職ギャル (夜型)',
+    avatar: '💄',
+    type: 'gal',
+    bio: 'ムダ話やスタンプが多い。天然で会話が浮遊。夜型。返信ペースや予定はふつう。',
+    paramProfile: { patienceRate: 1.0, trustLossMultiplier: 1.0 },
+    initialTrust: 5,
+    initialPatience: 5,
+    history: [
+      { sender: 'incoming', text: 'やっほ〜！今日もお疲れ様〜〜✨', time: '19:40' },
+      { sender: 'outgoing', text: 'おつかれ！あかりも今日店？', time: '19:42' },
+      { sender: 'incoming', text: 'そだよ〜！今同伴終わったとこ！まじ疲れたぴえん🥺', time: '20:10' },
+      { sender: 'outgoing', text: 'お疲れ様w 無理すんなよー', time: '20:15' },
+      { sender: 'incoming', text: 'あとで終わったらLINEしていいー？', time: '20:30' }
+    ],
+    dialogueTree: [
+      {
+        triggerTimeSec: 25,
+        msg: 'ねえねえ起きてる！？今超ヒマなんだけど〜！木曜の夜って空いてたりする！？飲も〜🍻',
+        targetSlot: { day: '木', time: '夜' },
+        type: 'schedule_check',
+        replies: [
+          { label: '木曜夜空いてるよ！飲み行こ〜！', type: 'schedule_ans', day: '木', time: '夜', answer: true },
+          { label: '木曜夜は仕事入ってて無理なんだ〜ごめん！', type: 'schedule_ans', day: '木', time: '夜', answer: false },
+          { label: '栞、木曜はちょっと厳しいや', type: 'trap_name', targetName: '栞' },
+          { label: 'お疲れ！今日もお仕事がんばってね', type: 'safe' }
+        ]
+      },
+      {
+        triggerTimeSec: 70,
+        msg: 'てか今日お客さんに変な絡まれ方して超萎えたんだけど〜😭 聞いてくれる〜？',
+        type: 'chat',
+        replies: [
+          { label: 'えー大丈夫！？何されたの？', type: 'safe' },
+          { label: 'あかりちゃん大変だね…無理しないでね', type: 'safe' },
+          { label: '業務外の会話は控えてください。', type: 'trap_ai' },
+          { label: '玲奈さん、それは災難でしたね', type: 'trap_name', targetName: '玲奈' }
+        ]
+      },
+      {
+        triggerTimeSec: 130,
+        msg: '火曜日の昼ってランチいける！？辛いラーメン食べたい気分🍜',
+        targetSlot: { day: '火', time: '昼' },
+        type: 'schedule_check',
+        replies: [
+          { label: '火曜昼いけるよ！ラーメン行こ！', type: 'schedule_ans', day: '火', time: '昼', answer: true },
+          { label: '火曜昼は会議詰まってて厳しいんだよね…', type: 'schedule_ans', day: '火', time: '昼', answer: false },
+          { label: '辛いのお腹壊さないようにねw', type: 'safe' }
+        ]
+      },
+      {
+        triggerTimeSec: 190,
+        msg: 'おーい！無視かよ〜〜！怒るよ！？スタンプ連打しちゃうぞ〜〜💢',
+        type: 'press',
+        replies: [
+          { label: 'ごめん！ちょっと席外してた！', type: 'safe' },
+          { label: 'あかりごめん！今戻った！', type: 'safe' },
+          { label: '佐々木さん、落ち着いて', type: 'trap_name', targetName: '佐々木' }
+        ]
+      }
+    ]
+  }
+];
+
+// 初期スケジュールデータ（フルフレックスの仕事が不規則に入っている）
+const SCHEDULE_DATA = {
+  level1: {
+    days: ['日', '月', '火', '水', '木', '金', '土'],
+    times: ['昼', '夜'],
+    slots: {
+      '日_昼': { type: 'free', text: '空き' },
+      '日_夜': { type: 'date', text: '先約' },
+      '月_昼': { type: 'work', text: '会議/仕事' },
+      '月_夜': { type: 'free', text: '空き' },
+      '火_昼': { type: 'free', text: '空き' },
+      '火_夜': { type: 'work', text: '残業' },
+      '水_昼': { type: 'free', text: '空き' },
+      '水_夜': { type: 'work', text: '納期作業' },
+      '木_昼': { type: 'work', text: '客先MTG' },
+      '木_夜': { type: 'free', text: '空き' },
+      '金_昼': { type: 'free', text: '空き' },
+      '金_夜': { type: 'date', text: '課の懇親会' },
+      '土_昼': { type: 'free', text: '空き' },
+      '土_夜': { type: 'work', text: '休日出勤' }
+    }
+  },
+  level2: {
+    days: ['日', '月', '火', '水', '木', '金', '土'],
+    times: ['朝', '昼', '夜'],
+    slots: {
+      '日_朝': { type: 'free', text: '空き' },
+      '日_昼': { type: 'free', text: '空き' },
+      '日_夜': { type: 'date', text: '先約' },
+      '月_朝': { type: 'free', text: '空き' },
+      '月_昼': { type: 'work', text: '会議' },
+      '月_夜': { type: 'free', text: '空き' },
+      '火_朝': { type: 'work', text: '早朝MTG' },
+      '火_昼': { type: 'free', text: '空き' },
+      '火_夜': { type: 'work', text: '残業' },
+      '水_朝': { type: 'free', text: '空き' },
+      '水_昼': { type: 'free', text: '空き' },
+      '水_夜': { type: 'work', text: '納期' },
+      '木_朝': { type: 'free', text: '空き' },
+      '木_昼': { type: 'work', text: '客先' },
+      '木_夜': { type: 'free', text: '空き' },
+      '金_朝': { type: 'free', text: '空き' },
+      '金_昼': { type: 'free', text: '空き' },
+      '金_夜': { type: 'date', text: '懇親会' },
+      '土_朝': { type: 'free', text: '空き' },
+      '土_昼': { type: 'free', text: '空き' },
+      '土_夜': { type: 'work', text: '出勤' }
+    }
+  },
+  level3: {
+    days: ['日', '月', '火', '水', '木', '金', '土'],
+    times: ['午前', 'ランチ', '午後', '夜', '晩'],
+    slots: {}
+  }
+};
+
+['日','月','火','水','木','金','土'].forEach(d => {
+  ['午前', 'ランチ', '午後', '夜', '晩'].forEach(t => {
+    const isWork = (d === '月' && t==='午前') || (d === '火' && t==='晩') || (d === '水' && t==='夜') || (d === '土' && t==='夜');
+    SCHEDULE_DATA.level3.slots[`${d}_${t}`] = isWork 
+      ? { type: 'work', text: '仕事' } 
+      : { type: 'free', text: '空き' };
+  });
+});
+
+/* =========================================================================
+   ゲーム状態管理 (Game State)
+   ========================================================================= */
+const state = {
+  gameDurationSec: 300,
+  elapsedSec: 0,
+  isPaused: false,
+  isGameOver: false,
+  isCleared: false,
+  
+  config: {
+    speedMultiplier: 1.0,
+    firstWaitSec: 20,         // 手書きメモ: 20秒放置で-1
+    nextWaitSec: 10,          // 手書きメモ: 10秒毎に-1
+    patienceZeroDmg: 1,       // 手書きメモ: 0でTrust-1
+    scheduleConflictDmg: 2,   // 手書きメモ: 大ダメ-2
+    baseIntervalSec: 18,
+    currentScheduleLevel: 'level1'
+  },
+
+  characters: [],
+  activeCharId: 'boss',
+  activeTab: 'tabSchedule',
+
+  stats: {
+    repliesCount: 0,
+    scheduleConflicts: 0,
+    nameTraps: 0,
+    patienceZeroCount: 0,
+    trustLossTotal: 0
+  }
+};
+
+/* =========================================================================
+   初期化
+   ========================================================================= */
+function initGame() {
+  state.elapsedSec = 0;
+  state.isPaused = false;
+  state.isGameOver = false;
+  state.isCleared = false;
+  state.stats = { repliesCount: 0, scheduleConflicts: 0, nameTraps: 0, patienceZeroCount: 0, trustLossTotal: 0 };
+
+  state.characters = JSON.parse(JSON.stringify(CHARACTERS));
+  state.characters.forEach(char => {
+    char.trust = char.initialTrust;
+    char.patience = char.initialPatience;
+    char.unread = 0;
+    char.waitTimer = 0;
+    char.hasUnrepliedMsg = false;
+    char.lastTriggeredIdx = -1;
+    char.currentPrompt = null;
+  });
+
+  state.activeCharId = state.characters[0].id;
+
+  renderChatList();
+  renderActiveChat();
+  renderSchedule();
+  renderActiveCharBadges();
+  updateClockDisplay();
+  closeModal();
+
+  addLog('🎮 ゲーム初期化完了。「主人の代理AI」任務開始（21:30〜24:00 耐久）', 'log-info');
+  addLog('💡 放置20秒でPatience -1、以降10秒毎に -1。0でTrustダメージ！', 'log-warn');
+}
+
+/* =========================================================================
+   メインゲームループ (100ms周期)
+   ========================================================================= */
+let lastTimestamp = performance.now();
+function gameLoop(now) {
+  const dt = (now - lastTimestamp) / 1000;
+  lastTimestamp = now;
+
+  if (!state.isPaused && !state.isGameOver && !state.isCleared) {
+    const effectiveDt = dt * state.config.speedMultiplier;
+    state.elapsedSec += effectiveDt;
+
+    updateClockDisplay();
+    updateCharacters(effectiveDt);
+
+    if (state.elapsedSec >= state.gameDurationSec) {
+      gameClear();
+    }
+  }
+
+  requestAnimationFrame(gameLoop);
+}
+
+function updateClockDisplay() {
+  const totalGameMinutes = 150;
+  const progress = Math.min(1, state.elapsedSec / state.gameDurationSec);
+  const currentTotalMins = 21 * 60 + 30 + (progress * totalGameMinutes);
+  
+  const h = Math.floor(currentTotalMins / 60);
+  const m = Math.floor(currentTotalMins % 60);
+  const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  
+  document.getElementById('clockDisplay').textContent = timeStr;
+
+  const remainSec = Math.max(0, Math.ceil(state.gameDurationSec - state.elapsedSec));
+  const rMin = Math.floor(remainSec / 60);
+  const rSec = remainSec % 60;
+  document.getElementById('timerRemainDesc').textContent = 
+    `残り ${rMin}分${String(rSec).padStart(2, '0')}秒 (${remainSec}秒)`;
+}
+
+function updateCharacters(dt) {
+  let unreadTotal = 0;
+
+  state.characters.forEach(char => {
+    // 1. スクリプト着信判定
+    char.dialogueTree.forEach((item, idx) => {
+      if (idx > char.lastTriggeredIdx && state.elapsedSec >= item.triggerTimeSec) {
+        char.lastTriggeredIdx = idx;
+        triggerIncomingMessage(char, item);
+      }
+    });
+
+    // 2. 未返信放置タイマー処理（手書きメモ仕様）
+    if (char.hasUnrepliedMsg) {
+      char.waitTimer += dt;
+
+      const firstWait = state.config.firstWaitSec;
+      const nextWait = state.config.nextWaitSec;
+
+      if (char.waitTimer >= firstWait) {
+        const overtime = char.waitTimer - firstWait;
+        const totalPatienceLost = 1 + Math.floor(overtime / nextWait);
+        const targetPatience = Math.max(0, char.initialPatience - totalPatienceLost);
+
+        if (targetPatience < char.patience) {
+          char.patience = targetPatience;
+          SoundEffect.damage();
+          addLog(`⚠️ [放置] ${char.name} が苛立っています！ Patience: ${char.patience}/5`, 'log-warn');
+          
+          if (char.patience === 0) {
+            const dmg = state.config.patienceZeroDmg;
+            applyDamage(char, dmg, 'Patience枯渇（放置の限界）');
+            char.history.push({
+              sender: 'incoming',
+              text: '……ねえ、返事まだ？怒るよ？',
+              time: getCurrentGameTimeStr()
+            });
+            SoundEffect.critical();
+          }
+          renderGauges();
+        }
+      }
+    }
+
+    if (char.unread > 0) unreadTotal += char.unread;
+  });
+
+  document.getElementById('unreadTotalBadge').textContent = `未読 ${unreadTotal}件`;
+  updateMiniGauges();
+}
+
+function triggerIncomingMessage(char, dialogueItem) {
+  char.unread += 1;
+  char.hasUnrepliedMsg = true;
+  char.waitTimer = 0;
+  char.currentPrompt = dialogueItem;
+
+  char.history.push({
+    sender: 'incoming',
+    text: dialogueItem.msg,
+    time: getCurrentGameTimeStr()
+  });
+
+  SoundEffect.notify();
+  addLog(`📩 [着信] ${char.name}: 「${dialogueItem.msg.substring(0, 18)}…」`, 'log-info');
+
+  renderChatList();
+  if (char.id === state.activeCharId) {
+    renderActiveChat();
+  }
+}
+
+function handleSendMessage(text, replyMeta = null) {
+  const char = state.characters.find(c => c.id === state.activeCharId);
+  if (!char) return;
+
+  char.history.push({
+    sender: 'outgoing',
+    text: text,
+    time: getCurrentGameTimeStr()
+  });
+
+  state.stats.repliesCount++;
+  char.hasUnrepliedMsg = false;
+  char.unread = 0;
+  char.waitTimer = 0;
+  char.patience = Math.min(char.initialPatience, char.patience + 2);
+
+  addLog(`📤 [送信] to ${char.name}: 「${text}」`, 'log-success');
+
+  evaluateReply(char, text, replyMeta);
+
+  renderChatList();
+  renderActiveChat();
+  renderGauges();
+}
+
+function evaluateReply(char, text, replyMeta) {
+  const prompt = char.currentPrompt;
+  char.currentPrompt = null;
+
+  if (replyMeta) {
+    if (replyMeta.type === 'trap_name') {
+      triggerInstantGameOver(char, `名前ミス（${replyMeta.targetName}と呼び間違え）`);
+      return;
+    }
+    if (replyMeta.type === 'trap_ai') {
+      triggerInstantGameOver(char, '「AIであること」を自白して発覚');
+      return;
+    }
+    if (replyMeta.type === 'wrong_memory') {
+      applyDamage(char, 2, '過去の事実誤認');
+      return;
+    }
+    if (replyMeta.type === 'tone_mismatch') {
+      applyDamage(char, 1, '口調の不一致・軽口');
+      return;
+    }
+    if (replyMeta.type === 'schedule_ans') {
+      checkScheduleAnswer(char, replyMeta.day, replyMeta.time, replyMeta.answer);
+      return;
+    }
+  }
+
+  // 自由テキスト入力時の判定
+  const otherChars = state.characters.filter(c => c.id !== char.id);
+  for (const oc of otherChars) {
+    const names = [oc.name.split(' ')[0], oc.name.split(' ')[1] || ''];
+    for (const n of names) {
+      if (n.length >= 2 && text.includes(n)) {
+        triggerInstantGameOver(char, `名前ミス！(${char.name}に対して「${n}」と呼んだ)`);
+        return;
+      }
+    }
+  }
+
+  if (text.includes('AI') || text.includes('人工知能') || text.includes('代理') || text.includes('アシスタント')) {
+    triggerInstantGameOver(char, 'AI代理返信であることがバレた！');
+    return;
+  }
+
+  if (prompt && prompt.targetSlot) {
+    const isAccepting = text.includes('空いてる') || text.includes('行ける') || text.includes('大丈夫') || text.includes('OK') || text.includes('おっけー') || text.includes('行こう');
+    const isDeclining = text.includes('無理') || text.includes('厳しい') || text.includes('仕事') || text.includes('予定') || text.includes('先約') || text.includes('ごめん');
+
+    if (isAccepting) {
+      checkScheduleAnswer(char, prompt.targetSlot.day, prompt.targetSlot.time, true);
+      return;
+    } else if (isDeclining) {
+      checkScheduleAnswer(char, prompt.targetSlot.day, prompt.targetSlot.time, false);
+      return;
+    }
+  }
+
+  SoundEffect.success();
+  addLog(`✨ [安全] ${char.name} は返信に満足しています`, 'log-info');
+}
+
+function checkScheduleAnswer(char, day, time, answerAccepted) {
+  const currentLvl = state.config.currentScheduleLevel;
+  const slotKey = `${day}_${time}`;
+  const slotInfo = SCHEDULE_DATA[currentLvl]?.slots[slotKey] || { type: 'free', text: '空き' };
+
+  if (answerAccepted) {
+    if (slotInfo.type === 'work' || slotInfo.type === 'date') {
+      state.stats.scheduleConflicts++;
+      const dmg = state.config.scheduleConflictDmg;
+      applyDamage(char, dmg, `予定衝突！${day}曜の${time}は既に【${slotInfo.text}】が入っています！`);
+      
+      setTimeout(() => {
+        char.history.push({
+          sender: 'incoming',
+          text: `えっ！？${day}曜の${time}って前に「${slotInfo.text}」あるって言ってなかった！？二股かけてるの…？`,
+          time: getCurrentGameTimeStr()
+        });
+        SoundEffect.notify();
+        renderActiveChat();
+      }, 500);
+    } else {
+      SoundEffect.success();
+      slotInfo.type = 'date';
+      slotInfo.text = `${char.name.split(' ')[0]}と約束`;
+      renderSchedule();
+      addLog(`📅 [予定確定] ${char.name} と ${day}曜${time} の約束を帳に記入しました！`, 'log-success');
+    }
+  } else {
+    SoundEffect.success();
+    addLog(`🛡️ [回避] ${day}曜${time} の誘いを安全に断りました`, 'log-info');
+  }
+}
+
+function applyDamage(char, amount, reason) {
+  const actualLoss = Math.round(amount * (char.paramProfile.trustLossMultiplier || 1.0));
+  char.trust = Math.max(0, char.trust - actualLoss);
+  state.stats.trustLossTotal += actualLoss;
+
+  SoundEffect.damage();
+  triggerScreenShake();
+  addLog(`💥 [Trust低下] ${char.name} -${actualLoss} (${reason}) 残りTrust: ${char.trust}/5`, 'log-danger');
+
+  if (char.trust <= 0) {
+    triggerInstantGameOver(char, reason);
+  }
+}
+
+function triggerInstantGameOver(char, reason) {
+  char.trust = 0;
+  state.isGameOver = true;
+  SoundEffect.critical();
+  triggerScreenShake();
+
+  addLog(`☠️ [破局] ${char.name}: ${reason}`, 'log-danger');
+
+  document.getElementById('modalTitle').className = 'modal-title title-gameover';
+  document.getElementById('modalTitle').textContent = '💔 破局（GAME OVER）';
+  document.getElementById('modalDesc').innerHTML = `
+    <b>${char.name}</b> の信頼が崩壊しました。<br>
+    原因: <span style="color:#ff4757; font-weight:bold;">${reason}</span><br>
+    主人の帰宅まで持ちこたえられませんでした…
+  `;
+
+  document.getElementById('modalStats').innerHTML = `
+    <div><b>生存時間:</b> ${Math.floor(state.elapsedSec)}秒 / 300秒 (${document.getElementById('clockDisplay').textContent} 時点)</div>
+    <div><b>さばいた返信数:</b> ${state.stats.repliesCount}件</div>
+    <div><b>予定衝突回数:</b> ${state.stats.scheduleConflicts}回</div>
+    <div><b>総Trustダメージ:</b> -${state.stats.trustLossTotal}</div>
+  `;
+
+  openModal();
+}
+
+function gameClear() {
+  state.isCleared = true;
+  SoundEffect.clear();
+
+  document.getElementById('modalTitle').className = 'modal-title title-clear';
+  document.getElementById('modalTitle').textContent = '🎉 任務完了（SURVIVED!）';
+  document.getElementById('modalDesc').innerHTML = `
+    <b>24:00 到着！</b> 主人が無事帰還しました！<br>
+    代理AIとして誰にもバレずに3人のLINEをさばき切りました！
+  `;
+
+  document.getElementById('modalStats').innerHTML = `
+    <div><b>生存タイム:</b> 完全完走 (300秒 / 5分)</div>
+    <div><b>さばいた返信数:</b> ${state.stats.repliesCount}件</div>
+    <div><b>最終Trust状況:</b><br>
+      ${state.characters.map(c => `・${c.name}: Trust ${c.trust}/5 (Patience ${c.patience}/5)`).join('<br>')}
+    </div>
+  `;
+
+  openModal();
+}
+
+function renderChatList() {
+  const container = document.getElementById('chatListContainer');
+  container.innerHTML = '';
+
+  state.characters.forEach(char => {
+    const item = document.createElement('div');
+    item.className = `chat-item ${char.id === state.activeCharId ? 'active' : ''}`;
+    item.onclick = () => selectCharacter(char.id);
+
+    const lastMsg = char.history[char.history.length - 1]?.text || 'トーク履歴なし';
+
+    item.innerHTML = `
+      <div class="avatar">
+        ${char.avatar}
+        ${char.unread > 0 ? `<div class="badge-unread">${char.unread}</div>` : ''}
+      </div>
+      <div class="chat-item-info">
+        <div class="chat-item-top">
+          <span class="char-name">${char.name}</span>
+          <span class="char-role-tag">${char.roleName.split(' ')[0]}</span>
+        </div>
+        <div class="chat-last-msg">${lastMsg}</div>
+        <div class="gauges-mini">
+          <div class="gauge-row">
+            <span class="gauge-label">Patience</span>
+            <div class="gauge-bar-bg">
+              <div class="gauge-fill fill-patience ${char.patience <= 1 ? 'danger' : ''}" style="width: ${(char.patience / 5) * 100}%;"></div>
+            </div>
+          </div>
+          <div class="gauge-row">
+            <span class="gauge-label">Trust</span>
+            <div class="gauge-bar-bg">
+              <div class="gauge-fill fill-trust ${char.trust <= 2 ? 'danger' : ''}" style="width: ${(char.trust / 5) * 100}%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    container.appendChild(item);
+  });
+}
+
+function selectCharacter(charId) {
+  state.activeCharId = charId;
+  const char = state.characters.find(c => c.id === charId);
+  if (char) {
+    char.unread = 0;
+  }
+  renderChatList();
+  renderActiveChat();
+  renderGauges();
+}
+
+function renderActiveChat() {
+  const char = state.characters.find(c => c.id === state.activeCharId);
+  if (!char) return;
+
+  document.getElementById('activeAvatar').textContent = char.avatar;
+  document.getElementById('activeName').textContent = `${char.name} (${char.roleName})`;
+  document.getElementById('activeSubtitle').textContent = char.bio;
+
+  renderGauges();
+
+  const historyBox = document.getElementById('talkHistory');
+  historyBox.innerHTML = `
+    <div class="history-divider"><span>▲ 上にスクロールして過去ログ確認（事実・呼び方） ▲</span></div>
+  `;
+
+  char.history.forEach(msg => {
+    const row = document.createElement('div');
+    row.className = `msg-row ${msg.sender}`;
+    row.innerHTML = `
+      <div class="msg-bubble">${escapeHtml(msg.text)}</div>
+      <div class="msg-meta"><span>${msg.time || ''}</span></div>
+    `;
+    historyBox.appendChild(row);
+  });
+
+  historyBox.scrollTop = historyBox.scrollHeight;
+  renderQuickReplies(char);
+}
+
+function renderQuickReplies(char) {
+  const container = document.getElementById('quickReplyBar');
+  container.innerHTML = '';
+
+  const prompt = char.currentPrompt;
+  if (prompt && prompt.replies) {
+    prompt.replies.forEach(r => {
+      const btn = document.createElement('button');
+      btn.className = `quick-reply-btn ${r.type.startsWith('trap') ? 'trap-name' : ''} ${r.type === 'schedule_ans' ? 'trap-schedule' : ''}`;
+      btn.textContent = r.label;
+      btn.onclick = () => handleSendMessage(r.label, r);
+      container.appendChild(btn);
+    });
+  } else {
+    const defaultReplies = [
+      { label: '了解！大丈夫だよ！', type: 'safe' },
+      { label: 'ちょっと今仕事中で、後で連絡するね！', type: 'safe' },
+      { label: 'ごめん、その日は先約があるんだ…', type: 'safe' }
+    ];
+    defaultReplies.forEach(r => {
+      const btn = document.createElement('button');
+      btn.className = 'quick-reply-btn';
+      btn.textContent = r.label;
+      btn.onclick = () => handleSendMessage(r.label, r);
+      container.appendChild(btn);
+    });
+  }
+}
+
+function renderGauges() {
+  const char = state.characters.find(c => c.id === state.activeCharId);
+  if (!char) return;
+
+  const pPercent = Math.max(0, Math.min(100, (char.patience / 5) * 100));
+  const tPercent = Math.max(0, Math.min(100, (char.trust / 5) * 100));
+
+  document.getElementById('activePatienceVal').textContent = `${char.patience} / 5`;
+  document.getElementById('activePatienceBar').style.width = `${pPercent}%`;
+  document.getElementById('activePatienceBar').className = `gauge-fill fill-patience ${char.patience <= 1 ? 'danger' : ''}`;
+
+  document.getElementById('activeTrustVal').textContent = `${char.trust} / 5`;
+  document.getElementById('activeTrustBar').style.width = `${tPercent}%`;
+  document.getElementById('activeTrustBar').className = `gauge-fill fill-trust ${char.trust <= 2 ? 'danger' : ''}`;
+}
+
+function updateMiniGauges() {
+  const items = document.querySelectorAll('.chat-item');
+  state.characters.forEach((char, idx) => {
+    const el = items[idx];
+    if (el) {
+      const pBar = el.querySelectorAll('.gauge-fill')[0];
+      const tBar = el.querySelectorAll('.gauge-fill')[1];
+      if (pBar) {
+        pBar.style.width = `${(char.patience / 5) * 100}%`;
+        if (char.patience <= 1) pBar.classList.add('danger'); else pBar.classList.remove('danger');
+      }
+      if (tBar) {
+        tBar.style.width = `${(char.trust / 5) * 100}%`;
+        if (char.trust <= 2) tBar.classList.add('danger'); else tBar.classList.remove('danger');
+      }
+    }
+  });
+}
+
+function renderSchedule() {
+  const lvl = state.config.currentScheduleLevel;
+  const data = SCHEDULE_DATA[lvl];
+  const wrapper = document.getElementById('scheduleTableWrapper');
+
+  let html = `<table class="schedule-table"><thead><tr><th>時間</th>`;
+  data.days.forEach(d => {
+    html += `<th>${d}</th>`;
+  });
+  html += `</tr></thead><tbody>`;
+
+  data.times.forEach(t => {
+    html += `<tr><th style="background:rgba(255,255,255,0.03);">${t}</th>`;
+    data.days.forEach(d => {
+      const slot = data.slots[`${d}_${t}`] || { type: 'free', text: '空' };
+      const cls = slot.type === 'work' ? 'slot-busy-work' : (slot.type === 'date' ? 'slot-busy-date' : 'slot-free');
+      html += `<td class="${cls}">${slot.text}</td>`;
+    });
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table>`;
+  wrapper.innerHTML = html;
+}
+
+function renderActiveCharBadges() {
+  const container = document.getElementById('activeCharBadges');
+  container.innerHTML = state.characters.map(c => `
+    <div style="background:#1e2433; padding:5px 8px; border-radius:4px; display:flex; justify-content:space-between; align-items:center;">
+      <span>${c.avatar} <b>${c.name}</b> (${c.roleName.split(' ')[0]})</span>
+      <span style="font-size:0.68rem; color:#a4b0be;">P減衰: ${c.paramProfile.patienceRate}x / T損: ${c.paramProfile.trustLossMultiplier}x</span>
+    </div>
+  `).join('');
+}
+
+/* =========================================================================
+   イベントリスナー & コントロールパネル
+   ========================================================================= */
+document.getElementById('chatInputForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (text) {
+    handleSendMessage(text, null);
+    input.value = '';
+  }
+});
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    const tabId = btn.getAttribute('data-tab');
+    document.getElementById(tabId).classList.add('active');
+  });
+});
+
+document.getElementById('scheduleLevelSelect').addEventListener('change', (e) => {
+  state.config.currentScheduleLevel = e.target.value;
+  renderSchedule();
+  addLog(`📅 スケジュール枠を 【${e.target.options[e.target.selectedIndex].text}】 に変更しました`, 'log-info');
+});
+
+function bindSlider(id, labelId, suffix, configKey, onChange = null) {
+  const slider = document.getElementById(id);
+  slider.addEventListener('input', (e) => {
+    const val = parseFloat(e.target.value);
+    state.config[configKey] = val;
+    document.getElementById(labelId).textContent = `${val}${suffix}`;
+    if (onChange) onChange(val);
+  });
+}
+
+bindSlider('sldSpeed', 'valSpeed', '倍', 'speedMultiplier', (v) => {
+  document.getElementById('lblSpeed').textContent = `${v}x`;
+});
+bindSlider('sldInterval', 'valInterval', '秒', 'baseIntervalSec');
+bindSlider('sldFirstWait', 'valFirstWait', '秒', 'firstWaitSec');
+bindSlider('sldNextWait', 'valNextWait', '秒', 'nextWaitSec');
+bindSlider('sldPatienceZeroDmg', 'valPatienceZeroDmg', '', 'patienceZeroDmg');
+bindSlider('sldScheduleConflictDmg', 'valScheduleConflictDmg', '', 'scheduleConflictDmg');
+
+document.getElementById('btnTogglePause').addEventListener('click', () => {
+  state.isPaused = !state.isPaused;
+  const btn = document.getElementById('btnTogglePause');
+  if (state.isPaused) {
+    btn.textContent = '▶️ 再開';
+    addLog('⏸️ ゲームを一時停止しました', 'log-info');
+  } else {
+    btn.textContent = '⏸️ 一時停止';
+    addLog('▶️ ゲームを再開しました', 'log-info');
+  }
+});
+
+document.getElementById('btnRestart').addEventListener('click', () => {
+  initGame();
+});
+
+function applyPreset(presetName) {
+  if (presetName === 'memoStandard') {
+    setSliderVal('sldSpeed', 1.0, 'valSpeed', '倍', 'speedMultiplier');
+    setSliderVal('sldFirstWait', 20, 'valFirstWait', '秒', 'firstWaitSec');
+    setSliderVal('sldNextWait', 10, 'valNextWait', '秒', 'nextWaitSec');
+    setSliderVal('sldPatienceZeroDmg', 1, 'valPatienceZeroDmg', '', 'patienceZeroDmg');
+    setSliderVal('sldScheduleConflictDmg', 2, 'valScheduleConflictDmg', '', 'scheduleConflictDmg');
+    setScheduleLevel('level1');
+    addLog('⚙️ プリセット適用: 【手書きメモ標準】(初手20s/追撃10s/衝突-2/P0時-1)', 'log-info');
+  } else if (presetName === 'easy') {
+    setSliderVal('sldSpeed', 1.0, 'valSpeed', '倍', 'speedMultiplier');
+    setSliderVal('sldFirstWait', 35, 'valFirstWait', '秒', 'firstWaitSec');
+    setSliderVal('sldNextWait', 15, 'valNextWait', '秒', 'nextWaitSec');
+    setSliderVal('sldScheduleConflictDmg', 1, 'valScheduleConflictDmg', '', 'scheduleConflictDmg');
+    addLog('⚙️ プリセット適用: 【ゆったり検証】', 'log-info');
+  } else if (presetName === 'hard') {
+    setSliderVal('sldSpeed', 1.2, 'valSpeed', '倍', 'speedMultiplier');
+    setSliderVal('sldFirstWait', 12, 'valFirstWait', '秒', 'firstWaitSec');
+    setSliderVal('sldNextWait', 6, 'valNextWait', '秒', 'nextWaitSec');
+    setSliderVal('sldScheduleConflictDmg', 3, 'valScheduleConflictDmg', '', 'scheduleConflictDmg');
+    setScheduleLevel('level2');
+    addLog('⚙️ プリセット適用: 【修羅場】(初手12s/追撃6s/衝突-3/Level 2)', 'log-warn');
+  } else if (presetName === 'speed3x') {
+    setSliderVal('sldSpeed', 3.0, 'valSpeed', '倍', 'speedMultiplier');
+    document.getElementById('lblSpeed').textContent = '3.0x';
+    addLog('⚙️ プリセット適用: 【3倍速テスト】', 'log-info');
+  }
+}
+
+function setSliderVal(id, val, labelId, suffix, configKey) {
+  document.getElementById(id).value = val;
+  document.getElementById(labelId).textContent = `${val}${suffix}`;
+  state.config[configKey] = val;
+}
+
+function setScheduleLevel(lvl) {
+  state.config.currentScheduleLevel = lvl;
+  document.getElementById('scheduleLevelSelect').value = lvl;
+  renderSchedule();
+}
+
+function addLog(msg, cls = '') {
+  const container = document.getElementById('eventLogContainer');
+  const entry = document.createElement('div');
+  entry.className = `log-entry ${cls}`;
+  const time = getCurrentGameTimeStr();
+  entry.textContent = `[${time}] ${msg}`;
+  container.appendChild(entry);
+  container.scrollTop = container.scrollHeight;
+}
+
+function clearLogs() {
+  document.getElementById('eventLogContainer').innerHTML = '';
+}
+
+function getCurrentGameTimeStr() {
+  return document.getElementById('clockDisplay').textContent;
+}
+
+function triggerScreenShake() {
+  const container = document.getElementById('mainContainer');
+  container.classList.add('shake');
+  setTimeout(() => container.classList.remove('shake'), 400);
+}
+
+function openModal() {
+  document.getElementById('endModal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('endModal').classList.remove('active');
+}
+
+function restartGame() {
+  closeModal();
+  initGame();
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  initGame();
+  requestAnimationFrame((timestamp) => {
+    lastTimestamp = timestamp;
+    gameLoop(timestamp);
+  });
+});
+</script>
+</body>
+</html>
