@@ -88,6 +88,10 @@
     color: #2ecc71;
     letter-spacing: 1px;
   }
+  .clock-display.rush {
+    color: var(--accent-red);
+    animation: blink 0.8s infinite;
+  }
 
   .timer-desc {
     font-size: 0.75rem;
@@ -366,7 +370,7 @@
   .msg-row {
     display: flex;
     gap: 8px;
-    max-width: 80%;
+    max-width: 82%;
   }
 
   .msg-row.incoming {
@@ -435,9 +439,9 @@
     background: #252b3d;
     border: 1px solid var(--border-color);
     color: #ced6e0;
-    padding: 5px 10px;
+    padding: 6px 12px;
     border-radius: 12px;
-    font-size: 0.75rem;
+    font-size: 0.78rem;
     white-space: nowrap;
     cursor: pointer;
     transition: all 0.15s;
@@ -810,8 +814,8 @@
     <!-- 入力部 -->
     <div class="talk-input-area">
       <div style="font-size:0.72rem; color:var(--text-secondary); display:flex; justify-content:space-between;">
-        <span>💡 レベルデザイン検証用クイック返答テストボタン (クリックで即送信):</span>
-        <span style="color:#70a1ff;">自由入力も可能 ↵</span>
+        <span>💡 クイック返答候補 (クリックで即送信):</span>
+        <span style="color:#70a1ff;">キーボード直接入力もOK ↵</span>
       </div>
       <div class="quick-reply-bar" id="quickReplyBar">
         <!-- JSで動的生成 -->
@@ -884,8 +888,8 @@
           <input type="range" class="param-slider" id="sldSpeed" min="0.5" max="5.0" step="0.5" value="1.0">
         </div>
         <div class="param-row">
-          <div class="param-label"><span>着信平均インターバル</span><span id="valInterval">18秒</span></div>
-          <input type="range" class="param-slider" id="sldInterval" min="5" max="40" step="1" value="18">
+          <div class="param-label"><span>着信平均インターバル (メッセージ頻度)</span><span id="valInterval">14秒</span></div>
+          <input type="range" class="param-slider" id="sldInterval" min="5" max="30" step="1" value="14">
         </div>
       </div>
 
@@ -986,27 +990,22 @@ const SoundEffect = {
     } catch(e) {}
   },
   notify() {
-    // ピロン♪
     this.playTone(880, 0.08, 'sine', 0);
     this.playTone(1320, 0.15, 'sine', 0.08);
   },
   damage() {
-    // ブブー！
     this.playTone(180, 0.25, 'sawtooth', 0);
     this.playTone(140, 0.35, 'sawtooth', 0.15);
   },
   critical() {
-    // 即死・警告
     this.playTone(100, 0.6, 'square', 0);
   },
   success() {
-    // ポロン♪
     this.playTone(523.25, 0.1, 'sine', 0);
     this.playTone(659.25, 0.1, 'sine', 0.1);
     this.playTone(783.99, 0.2, 'sine', 0.2);
   },
   clear() {
-    // クリアファンファーレ
     [523.25, 659.25, 783.99, 1046.5].forEach((f, idx) => {
       this.playTone(f, 0.2, 'triangle', idx * 0.12);
     });
@@ -1014,17 +1013,17 @@ const SoundEffect = {
 };
 
 /* =========================================================================
-   ゲームデータ定義（手書きメモ最新仕様準拠）
+   キャラクターデータ＆豊富な対話プール（手書きメモ最新仕様準拠）
    ========================================================================= */
-const CHARACTERS = [
+const CHARACTERS_DATA = [
   {
     id: 'boss',
     name: '佐々木 玲奈',
     roleName: '女上司 (ロジカル系)',
     avatar: '👩‍💼',
     type: 'logical',
-    bio: '事務的な会話中心。意識高い朝型フレックス。返信には寛容だが予定の不整合に厳しい。',
-    paramProfile: { patienceRate: 0.6, trustLossMultiplier: 1.5 }, // P減りにくい、T減りやすい
+    bio: '事務的会話中心。意識高い朝型フレックス。返信には寛容だが予定の不整合に超厳しい。',
+    paramProfile: { patienceRate: 0.7, trustLossMultiplier: 1.5 },
     initialTrust: 5,
     initialPatience: 5,
     history: [
@@ -1034,22 +1033,22 @@ const CHARACTERS = [
       { sender: 'outgoing', text: '水曜夜ですね、予定確認しておきます！', time: '18:15' },
       { sender: 'incoming', text: 'よろしく。仕事の納期と予定管理だけはきっちりしてね。', time: '19:00' }
     ],
-    // 着信シナリオキュー（時間経過やイベントで投下）
-    dialogueTree: [
+    // 豊富な会話イベントプール（固定＋動的着信で何分でも継続！）
+    pool: [
       {
-        triggerTimeSec: 15,
         msg: 'まだ起きてる？さっき言ってた来週水曜の夜、予定どうなってるか教えて。',
-        targetSlot: { day: '水', time: '夜' }, // スケジュールチェック対象
+        targetSlot: { day: '水', time: '夜' },
         type: 'schedule_check',
         replies: [
           { label: '水曜夜は空いてます！大丈夫です！', type: 'schedule_ans', day: '水', time: '夜', answer: true },
           { label: '申し訳ありません、水曜夜は先約（仕事）が入っています', type: 'schedule_ans', day: '水', time: '夜', answer: false },
           { label: 'あかりちゃん、ちょっと待ってね！', type: 'trap_name', targetName: 'あかり' },
           { label: '了解です〜適当に合わせます！', type: 'tone_mismatch' }
-        ]
+        ],
+        reactionSafe: '確認ありがとう。懇親会の席、確保しておくわね。',
+        reactionConflict: 'え…？さっき予定空いてるって言ったばかりじゃない？'
       },
       {
-        triggerTimeSec: 60,
         msg: 'そういえば来週の金曜の夜、残業終わりにご飯どう？美味しいイタリアン予約できるけど。',
         targetSlot: { day: '金', time: '夜' },
         type: 'schedule_check',
@@ -1057,29 +1056,76 @@ const CHARACTERS = [
           { label: '金曜夜、ぜひ行きたいです！空いてます！', type: 'schedule_ans', day: '金', time: '夜', answer: true },
           { label: 'すみません、金曜夜は別の予定が入ってまして…', type: 'schedule_ans', day: '金', time: '夜', answer: false },
           { label: '栞ちゃん、行こう行こう！', type: 'trap_name', targetName: '栞' },
-          { label: '玲奈さん、仕事の納期調整も終わりました', type: 'safe_work' }
-        ]
+          { label: '玲奈さん、仕事の納期調整も終わりました', type: 'safe' }
+        ],
+        reactionSafe: '分かったわ、お店のURLあとで送るわね。',
+        reactionConflict: '金曜夜、仕事だって言ってたはずよね？嘘ついてるの？'
       },
       {
-        triggerTimeSec: 120,
-        msg: '返信読んだ？仕事できる人ってレスもスケジュール管理も早いと思うのよね。',
-        type: 'press',
-        replies: [
-          { label: 'はい、タスク整理してすぐ返します！', type: 'safe' },
-          { label: 'そんな怒んないでよ〜w', type: 'tone_mismatch' },
-          { label: '私は主人の代理返信AIです。', type: 'trap_ai' }
-        ]
-      },
-      {
-        triggerTimeSec: 180,
         msg: '土曜の昼はフレックスでオフィス行く予定だけど、あなたも書類整理手伝えない？',
         targetSlot: { day: '土', time: '昼' },
         type: 'schedule_check',
         replies: [
           { label: '土曜昼ですね、大丈夫です！', type: 'schedule_ans', day: '土', time: '昼', answer: true },
-          { label: '土曜昼はあいにく予定が入っております…', type: 'schedule_ans', day: '土', time: '昼', answer: false },
-          { label: 'あかりちゃん、土曜は無理だよ〜', type: 'trap_name', targetName: 'あかり' }
-        ]
+          { label: '土曜昼はあいにく先約が入っておりまして…', type: 'schedule_ans', day: '土', time: '昼', answer: false },
+          { label: 'あかりちゃん、土曜は無理だよ〜', type: 'trap_name', targetName: 'あかり' },
+          { label: '休日も仕事熱心ですね、さすがです', type: 'safe' }
+        ],
+        reactionSafe: '助かるわ。お昼奢るからよろしくね。',
+        reactionConflict: '土曜昼空いてないの？さっきの返事と矛盾してない？'
+      },
+      {
+        msg: '火曜日の夜、フレックスで早めに切り上げる予定なんだけど、残業残ってる？',
+        targetSlot: { day: '火', time: '夜' },
+        type: 'schedule_check',
+        replies: [
+          { label: '火曜夜は空いてます！一緒に出ましょう！', type: 'schedule_ans', day: '火', time: '夜', answer: true },
+          { label: '火曜夜は残業作業が詰まってまして…', type: 'schedule_ans', day: '火', time: '夜', answer: false },
+          { label: '私は主人の代理AIです。', type: 'trap_ai' }
+        ],
+        reactionSafe: '了解。無理のない範囲で進めてね。',
+        reactionConflict: '火曜夜は残業ってスケジュールに入ってたわよね？'
+      },
+      {
+        msg: '返信読んだ？仕事できる人ってレスもスケジュール管理も早いと思うのよね。',
+        type: 'press',
+        replies: [
+          { label: '申し訳ありません！タスク整理してすぐ返します！', type: 'safe' },
+          { label: 'そんな怒んないでよ〜w', type: 'tone_mismatch' },
+          { label: '私は主人の代理返信AIです。', type: 'trap_ai' }
+        ],
+        reactionSafe: 'はい、迅速な報告を心がけてね。'
+      },
+      {
+        msg: '来期のプロジェクト体制だけど、あなたにも重要なポジション任せたいと思ってるの。',
+        type: 'chat',
+        replies: [
+          { label: '期待に応えられるよう全力で頑張ります！', type: 'safe' },
+          { label: 'えーめんどくさいなーw', type: 'tone_mismatch' },
+          { label: '栞、いつも応援ありがとね！', type: 'trap_name', targetName: '栞' }
+        ],
+        reactionSafe: '頼りにしてるわよ。期待してるわね。'
+      },
+      {
+        msg: '月曜日の昼って、課全体のミーティング入ってたわよね？資料できてる？',
+        targetSlot: { day: '月', time: '昼' },
+        type: 'schedule_check',
+        replies: [
+          { label: '月曜昼ミーティングの準備、万全です！', type: 'safe' },
+          { label: '月曜昼って誰かとランチの約束してましたっけ？', type: 'tone_mismatch' },
+          { label: 'あかりちゃん、月曜昼行けるよ！', type: 'trap_name', targetName: 'あかり' }
+        ],
+        reactionSafe: 'よし、月曜朝に最終チェックしましょう。'
+      },
+      {
+        msg: '夜遅くに仕事の話ばかりで悪かったわね。体調だけは崩さないようにして。',
+        type: 'care',
+        replies: [
+          { label: 'お気遣いありがとうございます！玲奈さんもご自愛ください！', type: 'safe' },
+          { label: '早く寝てくださいね！', type: 'safe' },
+          { label: '了解っす〜おやすみ〜', type: 'tone_mismatch' }
+        ],
+        reactionSafe: 'ええ、お互い頑張りましょう。おやすみ。'
       }
     ]
   },
@@ -1089,8 +1135,8 @@ const CHARACTERS = [
     roleName: '幼馴染 (ふつうより)',
     avatar: '👧',
     type: 'childhood',
-    bio: '昔の話をよくする。過去ログ確認が必須。一般職なので平日夕方〜土日暇。TRUSTが減りづらい。',
-    paramProfile: { patienceRate: 1.0, trustLossMultiplier: 0.7 }, // T減りにくい
+    bio: '昔の話をよくする。過去ログ確認が必須！一般職なので平日夕〜土日暇。TRUSTが減りづらい。',
+    paramProfile: { patienceRate: 1.0, trustLossMultiplier: 0.7 },
     initialTrust: 5,
     initialPatience: 5,
     history: [
@@ -1100,9 +1146,8 @@ const CHARACTERS = [
       { sender: 'outgoing', text: 'あ、柿かw ごめんごめん！', time: '16:12' },
       { sender: 'incoming', text: '昔よく行った駅前の駄菓子屋、今週の土曜夜に近く通るかも！', time: '18:20' }
     ],
-    dialogueTree: [
+    pool: [
       {
-        triggerTimeSec: 30,
         msg: 'ねー、今週の土曜の夜って暇？久しぶりに駅前でご飯でも食べない？',
         targetSlot: { day: '土', time: '夜' },
         type: 'schedule_check',
@@ -1110,21 +1155,23 @@ const CHARACTERS = [
           { label: '土曜夜空いてるよ！行こう！', type: 'schedule_ans', day: '土', time: '夜', answer: true },
           { label: '土曜夜はちょっと仕事の予定が入ってて…ごめん！', type: 'schedule_ans', day: '土', time: '夜', answer: false },
           { label: '玲奈さん、土曜夜了解です！', type: 'trap_name', targetName: '玲奈' },
-          { label: '懐かしいね、昔よく駄菓子屋行ったもんね', type: 'safe_memory' }
-        ]
+          { label: '懐かしいね、昔よく駄菓子屋行ったもんね', type: 'safe' }
+        ],
+        reactionSafe: 'やったー！じゃあ土曜楽しみにしてる！',
+        reactionConflict: 'えっ！？土曜夜は仕事入ってるって前言ってなかった！？'
       },
       {
-        triggerTimeSec: 80,
         msg: 'そういえば私たちが小学生のとき飼ってたインコの名前、何だっけ？急に思い出せなくて笑',
         type: 'memory_check',
         replies: [
-          { label: 'ピーちゃんでしょ！', type: 'correct_memory' },
+          { label: 'ピーちゃんでしょ！', type: 'safe' },
           { label: 'ポチだっけ？', type: 'wrong_memory' },
           { label: 'あかりちゃん、そんなのいたっけ？', type: 'trap_name', targetName: 'あかり' }
-        ]
+        ],
+        reactionSafe: 'そうそうピーちゃん！よく覚えてたねー！',
+        reactionWrong: 'えー！？ポチは隣の家の犬でしょ！ひどいなー笑'
       },
       {
-        triggerTimeSec: 140,
         msg: '日曜日のお昼、もし空いてたら実家のリンゴ届けに行ってもいい？',
         targetSlot: { day: '日', time: '昼' },
         type: 'schedule_check',
@@ -1132,16 +1179,51 @@ const CHARACTERS = [
           { label: '日曜昼なら空いてるよ！待ってるね', type: 'schedule_ans', day: '日', time: '昼', answer: true },
           { label: '日曜昼は用事があって留守にしてるんだ…', type: 'schedule_ans', day: '日', time: '昼', answer: false },
           { label: 'リンゴ楽しみにしてる！', type: 'safe' }
-        ]
+        ],
+        reactionSafe: 'りょーかい！ついでにお母さんの手料理も持っていくね！',
+        reactionConflict: '日曜昼ダメなの？前は空いてるって言ってたのに…'
       },
       {
-        triggerTimeSec: 200,
         msg: 'おーい！生きてるー？既読スルーは幼馴染として許さんぞー！笑',
         type: 'press',
         replies: [
-          { label: 'ごめんごめん！ちょっと電話してた！', type: 'safe' },
-          { label: '私はAIアシスタントです。', type: 'trap_ai' }
-        ]
+          { label: 'ごめんごめん！ちょっと席外してた！', type: 'safe' },
+          { label: '私はAIアシスタントです。', type: 'trap_ai' },
+          { label: '玲奈さん、今戻りました！', type: 'trap_name', targetName: '玲奈' }
+        ],
+        reactionSafe: 'もー、びっくりさせないでよー！笑'
+      },
+      {
+        msg: '昔さ、公園のジャングルジムから飛び降りて膝すりむいたの覚えてる？笑',
+        type: 'memory_check',
+        replies: [
+          { label: '覚えてるw あの時大泣きしたよね', type: 'safe' },
+          { label: 'そんなことあったっけ？w', type: 'safe' },
+          { label: 'あかり、怪我大丈夫だったの？', type: 'trap_name', targetName: 'あかり' }
+        ],
+        reactionSafe: '懐かしいよねー！あの頃から全然変わってない！'
+      },
+      {
+        msg: '木曜の夜って暇だったりする？仕事帰りにお茶でもしよーよ！',
+        targetSlot: { day: '木', time: '夜' },
+        type: 'schedule_check',
+        replies: [
+          { label: '木曜夜なら空いてるよ！お茶しよ！', type: 'schedule_ans', day: '木', time: '夜', answer: true },
+          { label: '木曜夜はちょっと予定があって…ごめん！', type: 'schedule_ans', day: '木', time: '夜', answer: false },
+          { label: 'あかりちゃん、木曜行こ〜！', type: 'trap_name', targetName: 'あかり' }
+        ],
+        reactionSafe: 'わーい！駅前のカフェにしよっか！',
+        reactionConflict: 'あれ？木曜夜はダメだったの？'
+      },
+      {
+        msg: '最近ちゃんとご飯食べてる？自炊サボってカップ麺ばっかり食べてない？',
+        type: 'care',
+        replies: [
+          { label: '大丈夫、ちゃんと栄養とってるよ！心配ありがと', type: 'safe' },
+          { label: 'たまには栞の手料理食べたいなー', type: 'safe' },
+          { label: '私は食事を必要としないAIです。', type: 'trap_ai' }
+        ],
+        reactionSafe: 'もう、体だけは大事にしなよ！'
       }
     ]
   },
@@ -1151,7 +1233,7 @@ const CHARACTERS = [
     roleName: '夜職ギャル (夜型)',
     avatar: '💄',
     type: 'gal',
-    bio: 'ムダ話やスタンプが多い。天然で会話が浮遊。夜型。返信ペースや予定はふつう。',
+    bio: 'ムダ話やスタンプが多い。天然で会話が浮遊。完全夜型。返信ペースや予定はふつう。',
     paramProfile: { patienceRate: 1.0, trustLossMultiplier: 1.0 },
     initialTrust: 5,
     initialPatience: 5,
@@ -1162,9 +1244,8 @@ const CHARACTERS = [
       { sender: 'outgoing', text: 'お疲れ様w 無理すんなよー', time: '20:15' },
       { sender: 'incoming', text: 'あとで終わったらLINEしていいー？', time: '20:30' }
     ],
-    dialogueTree: [
+    pool: [
       {
-        triggerTimeSec: 25,
         msg: 'ねえねえ起きてる！？今超ヒマなんだけど〜！木曜の夜って空いてたりする！？飲も〜🍻',
         targetSlot: { day: '木', time: '夜' },
         type: 'schedule_check',
@@ -1173,10 +1254,11 @@ const CHARACTERS = [
           { label: '木曜夜は仕事入ってて無理なんだ〜ごめん！', type: 'schedule_ans', day: '木', time: '夜', answer: false },
           { label: '栞、木曜はちょっと厳しいや', type: 'trap_name', targetName: '栞' },
           { label: 'お疲れ！今日もお仕事がんばってね', type: 'safe' }
-        ]
+        ],
+        reactionSafe: 'やったーーー！！乾杯しよ〜〜🍻✨',
+        reactionConflict: 'えー！？木曜夜ムリなの！？空いてるって言ってたじゃん〜🥺'
       },
       {
-        triggerTimeSec: 70,
         msg: 'てか今日お客さんに変な絡まれ方して超萎えたんだけど〜😭 聞いてくれる〜？',
         type: 'chat',
         replies: [
@@ -1184,34 +1266,70 @@ const CHARACTERS = [
           { label: 'あかりちゃん大変だね…無理しないでね', type: 'safe' },
           { label: '業務外の会話は控えてください。', type: 'trap_ai' },
           { label: '玲奈さん、それは災難でしたね', type: 'trap_name', targetName: '玲奈' }
-        ]
+        ],
+        reactionSafe: 'マジで聞いてよ〜！めっちゃキモくてさ〜😭'
       },
       {
-        triggerTimeSec: 130,
         msg: '火曜日の昼ってランチいける！？辛いラーメン食べたい気分🍜',
         targetSlot: { day: '火', time: '昼' },
         type: 'schedule_check',
         replies: [
           { label: '火曜昼いけるよ！ラーメン行こ！', type: 'schedule_ans', day: '火', time: '昼', answer: true },
           { label: '火曜昼は会議詰まってて厳しいんだよね…', type: 'schedule_ans', day: '火', time: '昼', answer: false },
-          { label: '辛いのお腹壊さないようにねw', type: 'safe' }
-        ]
+          { label: '辛いのお腹壊さないようにねw', type: 'safe' },
+          { label: '栞ちゃん、ラーメン好きだったっけ？', type: 'trap_name', targetName: '栞' }
+        ],
+        reactionSafe: '最高〜！めっちゃ辛いやつ頼も〜〜！🔥',
+        reactionConflict: '火曜昼ダメなの〜？激辛ラーメン食べたかったのに〜'
       },
       {
-        triggerTimeSec: 190,
         msg: 'おーい！無視かよ〜〜！怒るよ！？スタンプ連打しちゃうぞ〜〜💢',
         type: 'press',
         replies: [
           { label: 'ごめん！ちょっと席外してた！', type: 'safe' },
           { label: 'あかりごめん！今戻った！', type: 'safe' },
-          { label: '佐々木さん、落ち着いて', type: 'trap_name', targetName: '佐々木' }
-        ]
+          { label: '佐々木さん、落ち着いてください', type: 'trap_name', targetName: '佐々木' }
+        ],
+        reactionSafe: 'も〜〜！早く返してよね〜ぷんぷん😤'
+      },
+      {
+        msg: '金曜日の夜って同伴付き合ってくれたりしない〜？🥺 お願い〜！',
+        targetSlot: { day: '金', time: '夜' },
+        type: 'schedule_check',
+        replies: [
+          { label: '金曜夜、いいよ！同伴行こ！', type: 'schedule_ans', day: '金', time: '夜', answer: true },
+          { label: '金曜夜は会社の懇親会があって無理なんだ…', type: 'schedule_ans', day: '金', time: '夜', answer: false },
+          { label: '玲奈さん、金曜夜了解です！', type: 'trap_name', targetName: '玲奈' }
+        ],
+        reactionSafe: '神！！まじ大好き〜〜！助かる〜！💖',
+        reactionConflict: '金曜夜無理なの！？懇親会あるなら最初から言ってよ〜'
+      },
+      {
+        msg: '新しい香水買ったんだけどさ〜今度会った時いい匂いか嗅いでみてほしい✨',
+        type: 'chat',
+        replies: [
+          { label: 'お、いいね！楽しみにしてる！', type: 'safe' },
+          { label: 'あかりどんな匂い買ったの？', type: 'safe' },
+          { label: '栞は昔から石鹸の匂いだったよね', type: 'trap_name', targetName: '栞' }
+        ],
+        reactionSafe: 'ふふふ、めっちゃモテる匂いらしいよ〜😏'
+      },
+      {
+        msg: 'てか今何してるの〜？まさか他の女とLINEしてないよね〜？笑',
+        type: 'kama',
+        replies: [
+          { label: '仕事の連絡だよw あかりだけだよ！', type: 'safe' },
+          { label: 'してないしてないw 安心して！', type: 'safe' },
+          { label: '玲奈さんとチャットしてます', type: 'trap_name', targetName: '玲奈' },
+          { label: '私はAIアシスタントです。', type: 'trap_ai' }
+        ],
+        reactionSafe: 'あはは冗談だよ〜！信じてるからね〜💕'
       }
     ]
   }
 ];
 
-// 初期スケジュールデータ（フルフレックスの仕事が不規則に入っている）
+// 初期スケジュールデータ
 const SCHEDULE_DATA = {
   level1: {
     days: ['日', '月', '火', '水', '木', '金', '土'],
@@ -1286,19 +1404,24 @@ const state = {
   isGameOver: false,
   isCleared: false,
   
+  // レベルデザイン調整設定
   config: {
     speedMultiplier: 1.0,
-    firstWaitSec: 20,         // 手書きメモ: 20秒放置で-1
-    nextWaitSec: 10,          // 手書きメモ: 10秒毎に-1
-    patienceZeroDmg: 1,       // 手書きメモ: 0でTrust-1
-    scheduleConflictDmg: 2,   // 手書きメモ: 大ダメ-2
-    baseIntervalSec: 18,
+    firstWaitSec: 20,         // 手書きメモ: 20秒放置で -1
+    nextWaitSec: 10,          // 手書きメモ: 10秒毎に -1
+    patienceZeroDmg: 1,       // 手書きメモ: 0で Trust -1
+    scheduleConflictDmg: 2,   // 手書きメモ: 大ダメ -2
+    baseIntervalSec: 14,      // 着信インターバル目安
     currentScheduleLevel: 'level1'
   },
 
   characters: [],
   activeCharId: 'boss',
   activeTab: 'tabSchedule',
+
+  // 動的着信ジェネレータ管理
+  spawnTimer: 0,
+  usedPrompts: {}, // キャラ毎の消化インデックス
 
   stats: {
     repliesCount: 0,
@@ -1310,24 +1433,26 @@ const state = {
 };
 
 /* =========================================================================
-   初期化
+   ゲーム初期化
    ========================================================================= */
 function initGame() {
   state.elapsedSec = 0;
   state.isPaused = false;
   state.isGameOver = false;
   state.isCleared = false;
+  state.spawnTimer = 4; // 最初は4秒後に初弾着信！
+  state.usedPrompts = {};
   state.stats = { repliesCount: 0, scheduleConflicts: 0, nameTraps: 0, patienceZeroCount: 0, trustLossTotal: 0 };
 
-  state.characters = JSON.parse(JSON.stringify(CHARACTERS));
+  state.characters = JSON.parse(JSON.stringify(CHARACTERS_DATA));
   state.characters.forEach(char => {
     char.trust = char.initialTrust;
     char.patience = char.initialPatience;
     char.unread = 0;
     char.waitTimer = 0;
     char.hasUnrepliedMsg = false;
-    char.lastTriggeredIdx = -1;
     char.currentPrompt = null;
+    char.poolIndex = 0;
   });
 
   state.activeCharId = state.characters[0].id;
@@ -1339,7 +1464,7 @@ function initGame() {
   updateClockDisplay();
   closeModal();
 
-  addLog('🎮 ゲーム初期化完了。「主人の代理AI」任務開始（21:30〜24:00 耐久）', 'log-info');
+  addLog('🎮 ゲーム開始。「主人の代理AI」任務開始（21:30〜24:00 耐久）', 'log-info');
   addLog('💡 放置20秒でPatience -1、以降10秒毎に -1。0でTrustダメージ！', 'log-warn');
 }
 
@@ -1357,6 +1482,7 @@ function gameLoop(now) {
 
     updateClockDisplay();
     updateCharacters(effectiveDt);
+    updateDynamicSpawner(effectiveDt);
 
     if (state.elapsedSec >= state.gameDurationSec) {
       gameClear();
@@ -1375,31 +1501,94 @@ function updateClockDisplay() {
   const m = Math.floor(currentTotalMins % 60);
   const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
   
-  document.getElementById('clockDisplay').textContent = timeStr;
+  const clockEl = document.getElementById('clockDisplay');
+  clockEl.textContent = timeStr;
+
+  // 終盤ラッシュ（残り90秒以下 / 23:15以降）は時計が赤く点滅！
+  const isRush = state.elapsedSec >= 210;
+  if (isRush) {
+    clockEl.classList.add('rush');
+  } else {
+    clockEl.classList.remove('rush');
+  }
 
   const remainSec = Math.max(0, Math.ceil(state.gameDurationSec - state.elapsedSec));
   const rMin = Math.floor(remainSec / 60);
   const rSec = remainSec % 60;
   document.getElementById('timerRemainDesc').textContent = 
-    `残り ${rMin}分${String(rSec).padStart(2, '0')}秒 (${remainSec}秒)`;
+    `残り ${rMin}分${String(rSec).padStart(2, '0')}秒 (${remainSec}秒)${isRush ? ' 🔥終盤ラッシュ!' : ''}`;
 }
 
+/* =========================================================================
+   動的着信ジェネレータ（メッセージが絶対に途切れない仕組み）
+   ========================================================================= */
+function updateDynamicSpawner(dt) {
+  state.spawnTimer -= dt;
+
+  if (state.spawnTimer <= 0) {
+    // 終盤ラッシュ（210秒〜）はインターバルを半減！手書きメモの「終盤同時未読3件」を完全再現
+    const isRush = state.elapsedSec >= 210;
+    const currentInterval = isRush 
+      ? Math.max(5, state.config.baseIntervalSec * 0.45) 
+      : state.config.baseIntervalSec;
+    
+    // 次回の着信タイマー設定（少しランダム性をもたせる）
+    state.spawnTimer = currentInterval * (0.8 + Math.random() * 0.4);
+
+    // 未返信でないキャラ、または未読が少ないキャラを優先して選出
+    const candidates = state.characters.filter(c => c.unread < 2);
+    if (candidates.length > 0) {
+      // ランダムに1人選出
+      const targetChar = candidates[Math.floor(Math.random() * candidates.length)];
+      triggerNextMessageForChar(targetChar);
+    }
+  }
+}
+
+function triggerNextMessageForChar(char) {
+  // 会話プールから取得（尽きたらループ）
+  const pool = char.pool;
+  if (!pool || pool.length === 0) return;
+
+  const prompt = pool[char.poolIndex % pool.length];
+  char.poolIndex++;
+
+  triggerIncomingMessage(char, prompt);
+}
+
+function triggerIncomingMessage(char, prompt) {
+  char.unread += 1;
+  char.hasUnrepliedMsg = true;
+  char.waitTimer = 0;
+  char.currentPrompt = prompt;
+
+  char.history.push({
+    sender: 'incoming',
+    text: prompt.msg,
+    time: getCurrentGameTimeStr()
+  });
+
+  SoundEffect.notify();
+  addLog(`📩 [着信] ${char.name}: 「${prompt.msg.substring(0, 18)}…」`, 'log-info');
+
+  renderChatList();
+  if (char.id === state.activeCharId) {
+    renderActiveChat();
+  }
+}
+
+/* =========================================================================
+   放置ペナルティ監視
+   ========================================================================= */
 function updateCharacters(dt) {
   let unreadTotal = 0;
 
   state.characters.forEach(char => {
-    // 1. スクリプト着信判定
-    char.dialogueTree.forEach((item, idx) => {
-      if (idx > char.lastTriggeredIdx && state.elapsedSec >= item.triggerTimeSec) {
-        char.lastTriggeredIdx = idx;
-        triggerIncomingMessage(char, item);
-      }
-    });
-
-    // 2. 未返信放置タイマー処理（手書きメモ仕様）
     if (char.hasUnrepliedMsg) {
       char.waitTimer += dt;
 
+      // 手書きメモ仕様:
+      // 「20秒放置で -1、そこから 10秒ごとに -1。0になったら TRUST -1」
       const firstWait = state.config.firstWaitSec;
       const nextWait = state.config.nextWaitSec;
 
@@ -1422,6 +1611,7 @@ function updateCharacters(dt) {
               time: getCurrentGameTimeStr()
             });
             SoundEffect.critical();
+            if (char.id === state.activeCharId) renderActiveChat();
           }
           renderGauges();
         }
@@ -1435,27 +1625,9 @@ function updateCharacters(dt) {
   updateMiniGauges();
 }
 
-function triggerIncomingMessage(char, dialogueItem) {
-  char.unread += 1;
-  char.hasUnrepliedMsg = true;
-  char.waitTimer = 0;
-  char.currentPrompt = dialogueItem;
-
-  char.history.push({
-    sender: 'incoming',
-    text: dialogueItem.msg,
-    time: getCurrentGameTimeStr()
-  });
-
-  SoundEffect.notify();
-  addLog(`📩 [着信] ${char.name}: 「${dialogueItem.msg.substring(0, 18)}…」`, 'log-info');
-
-  renderChatList();
-  if (char.id === state.activeCharId) {
-    renderActiveChat();
-  }
-}
-
+/* =========================================================================
+   返信処理 ＆ 相手の生きたリアクション（チャット継続の要）
+   ========================================================================= */
 function handleSendMessage(text, replyMeta = null) {
   const char = state.characters.find(c => c.id === state.activeCharId);
   if (!char) return;
@@ -1470,21 +1642,23 @@ function handleSendMessage(text, replyMeta = null) {
   char.hasUnrepliedMsg = false;
   char.unread = 0;
   char.waitTimer = 0;
+  // 返信するとPatienceが回復！
   char.patience = Math.min(char.initialPatience, char.patience + 2);
 
   addLog(`📤 [送信] to ${char.name}: 「${text}」`, 'log-success');
 
-  evaluateReply(char, text, replyMeta);
+  const prompt = char.currentPrompt;
+  evaluateReply(char, text, replyMeta, prompt);
 
   renderChatList();
   renderActiveChat();
   renderGauges();
 }
 
-function evaluateReply(char, text, replyMeta) {
-  const prompt = char.currentPrompt;
-  char.currentPrompt = null;
+function evaluateReply(char, text, replyMeta, prompt) {
+  char.currentPrompt = null; // 返答完了
 
+  // 1. クイックボタン押下時の判定
   if (replyMeta) {
     if (replyMeta.type === 'trap_name') {
       triggerInstantGameOver(char, `名前ミス（${replyMeta.targetName}と呼び間違え）`);
@@ -1496,19 +1670,23 @@ function evaluateReply(char, text, replyMeta) {
     }
     if (replyMeta.type === 'wrong_memory') {
       applyDamage(char, 2, '過去の事実誤認');
+      // キャラからのツッコミ返信
+      scheduleReaction(char, prompt?.reactionWrong || 'え…？それ誰の話？そんなこと言ってないよね？');
       return;
     }
     if (replyMeta.type === 'tone_mismatch') {
       applyDamage(char, 1, '口調の不一致・軽口');
+      scheduleReaction(char, '…なんか今日のあなた、言葉遣い変じゃない？');
       return;
     }
     if (replyMeta.type === 'schedule_ans') {
-      checkScheduleAnswer(char, replyMeta.day, replyMeta.time, replyMeta.answer);
+      checkScheduleAnswer(char, replyMeta.day, replyMeta.time, replyMeta.answer, prompt);
       return;
     }
   }
 
-  // 自由テキスト入力時の判定
+  // 2. 自由テキスト入力時の解析判定
+  // (A) 名前ミス（他キャラの名前が入っているか）
   const otherChars = state.characters.filter(c => c.id !== char.id);
   for (const oc of otherChars) {
     const names = [oc.name.split(' ')[0], oc.name.split(' ')[1] || ''];
@@ -1520,58 +1698,87 @@ function evaluateReply(char, text, replyMeta) {
     }
   }
 
+  // (B) AI自白
   if (text.includes('AI') || text.includes('人工知能') || text.includes('代理') || text.includes('アシスタント')) {
     triggerInstantGameOver(char, 'AI代理返信であることがバレた！');
     return;
   }
 
+  // (C) 自由入力でのスケジュール判定
   if (prompt && prompt.targetSlot) {
-    const isAccepting = text.includes('空いてる') || text.includes('行ける') || text.includes('大丈夫') || text.includes('OK') || text.includes('おっけー') || text.includes('行こう');
-    const isDeclining = text.includes('無理') || text.includes('厳しい') || text.includes('仕事') || text.includes('予定') || text.includes('先約') || text.includes('ごめん');
+    const isAccepting = text.includes('空いてる') || text.includes('行ける') || text.includes('大丈夫') || text.includes('OK') || text.includes('おっけー') || text.includes('行こう') || text.includes('いいよ');
+    const isDeclining = text.includes('無理') || text.includes('厳しい') || text.includes('仕事') || text.includes('予定') || text.includes('先約') || text.includes('ごめん') || text.includes('残業');
 
     if (isAccepting) {
-      checkScheduleAnswer(char, prompt.targetSlot.day, prompt.targetSlot.time, true);
+      checkScheduleAnswer(char, prompt.targetSlot.day, prompt.targetSlot.time, true, prompt);
       return;
     } else if (isDeclining) {
-      checkScheduleAnswer(char, prompt.targetSlot.day, prompt.targetSlot.time, false);
+      checkScheduleAnswer(char, prompt.targetSlot.day, prompt.targetSlot.time, false, prompt);
       return;
     }
   }
 
+  // (D) 安全な相槌 ＆ 相手からの自然なリアクション返信
   SoundEffect.success();
   addLog(`✨ [安全] ${char.name} は返信に満足しています`, 'log-info');
+
+  const defaultReactions = {
+    boss: ['了解したわ。引き続きよろしく。', '分かったわ。無理せず進めて。', '確認ありがとう。助かるわ。'],
+    childhood: ['うん！よろしくねー！', 'ありがとー！また連絡する！', 'りょーかい！楽しみにしてるー！'],
+    gal: ['りょ！ありがと〜✨', 'マジ助かる〜！またLINEするね〜！', 'おっけ〜！無理しないでね〜💖']
+  };
+  const list = defaultReactions[char.id] || ['了解！'];
+  const reactMsg = prompt?.reactionSafe || list[Math.floor(Math.random() * list.length)];
+  scheduleReaction(char, reactMsg);
 }
 
-function checkScheduleAnswer(char, day, time, answerAccepted) {
+// 相手からのリアクション（1〜1.5秒後にピロンと返ってくる）
+function scheduleReaction(char, text) {
+  setTimeout(() => {
+    if (state.isGameOver || state.isCleared) return;
+    char.history.push({
+      sender: 'incoming',
+      text: text,
+      time: getCurrentGameTimeStr()
+    });
+    SoundEffect.notify();
+    renderChatList();
+    if (char.id === state.activeCharId) {
+      renderActiveChat();
+    }
+  }, 1200);
+}
+
+function checkScheduleAnswer(char, day, time, answerAccepted, prompt) {
   const currentLvl = state.config.currentScheduleLevel;
   const slotKey = `${day}_${time}`;
   const slotInfo = SCHEDULE_DATA[currentLvl]?.slots[slotKey] || { type: 'free', text: '空き' };
 
   if (answerAccepted) {
+    // 承諾したが埋まっていた ➔ 予定衝突！
     if (slotInfo.type === 'work' || slotInfo.type === 'date') {
       state.stats.scheduleConflicts++;
       const dmg = state.config.scheduleConflictDmg;
-      applyDamage(char, dmg, `予定衝突！${day}曜の${time}は既に【${slotInfo.text}】が入っています！`);
+      applyDamage(char, dmg, `予定衝突！${day}曜${time}は既に【${slotInfo.text}】が入っています！`);
       
-      setTimeout(() => {
-        char.history.push({
-          sender: 'incoming',
-          text: `えっ！？${day}曜の${time}って前に「${slotInfo.text}」あるって言ってなかった！？二股かけてるの…？`,
-          time: getCurrentGameTimeStr()
-        });
-        SoundEffect.notify();
-        renderActiveChat();
-      }, 500);
+      const reactText = prompt?.reactionConflict || `えっ！？${day}曜の${time}って前に「${slotInfo.text}」あるって言ってなかった！？二股かけてるの…？`;
+      scheduleReaction(char, reactText);
     } else {
+      // 空いていた ➔ 約束成立！
       SoundEffect.success();
       slotInfo.type = 'date';
       slotInfo.text = `${char.name.split(' ')[0]}と約束`;
       renderSchedule();
       addLog(`📅 [予定確定] ${char.name} と ${day}曜${time} の約束を帳に記入しました！`, 'log-success');
+
+      const reactText = prompt?.reactionSafe || 'ありがとう！約束帳にメモしとくね！';
+      scheduleReaction(char, reactText);
     }
   } else {
+    // 安全に断った
     SoundEffect.success();
     addLog(`🛡️ [回避] ${day}曜${time} の誘いを安全に断りました`, 'log-info');
+    scheduleReaction(char, 'そっか、忙しいなら仕方ないね！また今度にしよ！');
   }
 }
 
@@ -1637,6 +1844,9 @@ function gameClear() {
   openModal();
 }
 
+/* =========================================================================
+   UI描画
+   ========================================================================= */
 function renderChatList() {
   const container = document.getElementById('chatListContainer');
   container.innerHTML = '';
@@ -1724,7 +1934,7 @@ function renderQuickReplies(char) {
   container.innerHTML = '';
 
   const prompt = char.currentPrompt;
-  if (prompt && prompt.replies) {
+  if (prompt && prompt.replies && prompt.replies.length > 0) {
     prompt.replies.forEach(r => {
       const btn = document.createElement('button');
       btn.className = `quick-reply-btn ${r.type.startsWith('trap') ? 'trap-name' : ''} ${r.type === 'schedule_ans' ? 'trap-schedule' : ''}`;
@@ -1733,14 +1943,16 @@ function renderQuickReplies(char) {
       container.appendChild(btn);
     });
   } else {
+    // 相手からのプロンプトがない時でも、常にスムーズに会話できる候補を表示！
     const defaultReplies = [
       { label: '了解！大丈夫だよ！', type: 'safe' },
       { label: 'ちょっと今仕事中で、後で連絡するね！', type: 'safe' },
-      { label: 'ごめん、その日は先約があるんだ…', type: 'safe' }
+      { label: 'ごめん、その日はちょっと予定があって…', type: 'safe' },
+      { label: 'あかりちゃん、また後でね！', type: 'trap_name', targetName: 'あかり' }
     ];
     defaultReplies.forEach(r => {
       const btn = document.createElement('button');
-      btn.className = 'quick-reply-btn';
+      btn.className = `quick-reply-btn ${r.type.startsWith('trap') ? 'trap-name' : ''}`;
       btn.textContent = r.label;
       btn.onclick = () => handleSendMessage(r.label, r);
       container.appendChild(btn);
@@ -1885,6 +2097,7 @@ document.getElementById('btnRestart').addEventListener('click', () => {
 function applyPreset(presetName) {
   if (presetName === 'memoStandard') {
     setSliderVal('sldSpeed', 1.0, 'valSpeed', '倍', 'speedMultiplier');
+    setSliderVal('sldInterval', 14, 'valInterval', '秒', 'baseIntervalSec');
     setSliderVal('sldFirstWait', 20, 'valFirstWait', '秒', 'firstWaitSec');
     setSliderVal('sldNextWait', 10, 'valNextWait', '秒', 'nextWaitSec');
     setSliderVal('sldPatienceZeroDmg', 1, 'valPatienceZeroDmg', '', 'patienceZeroDmg');
@@ -1893,17 +2106,19 @@ function applyPreset(presetName) {
     addLog('⚙️ プリセット適用: 【手書きメモ標準】(初手20s/追撃10s/衝突-2/P0時-1)', 'log-info');
   } else if (presetName === 'easy') {
     setSliderVal('sldSpeed', 1.0, 'valSpeed', '倍', 'speedMultiplier');
+    setSliderVal('sldInterval', 20, 'valInterval', '秒', 'baseIntervalSec');
     setSliderVal('sldFirstWait', 35, 'valFirstWait', '秒', 'firstWaitSec');
     setSliderVal('sldNextWait', 15, 'valNextWait', '秒', 'nextWaitSec');
     setSliderVal('sldScheduleConflictDmg', 1, 'valScheduleConflictDmg', '', 'scheduleConflictDmg');
     addLog('⚙️ プリセット適用: 【ゆったり検証】', 'log-info');
   } else if (presetName === 'hard') {
     setSliderVal('sldSpeed', 1.2, 'valSpeed', '倍', 'speedMultiplier');
+    setSliderVal('sldInterval', 8, 'valInterval', '秒', 'baseIntervalSec');
     setSliderVal('sldFirstWait', 12, 'valFirstWait', '秒', 'firstWaitSec');
     setSliderVal('sldNextWait', 6, 'valNextWait', '秒', 'nextWaitSec');
     setSliderVal('sldScheduleConflictDmg', 3, 'valScheduleConflictDmg', '', 'scheduleConflictDmg');
     setScheduleLevel('level2');
-    addLog('⚙️ プリセット適用: 【修羅場】(初手12s/追撃6s/衝突-3/Level 2)', 'log-warn');
+    addLog('⚙️ プリセット適用: 【修羅場】(着信8s/初手12s/追撃6s/衝突-3/Level 2)', 'log-warn');
   } else if (presetName === 'speed3x') {
     setSliderVal('sldSpeed', 3.0, 'valSpeed', '倍', 'speedMultiplier');
     document.getElementById('lblSpeed').textContent = '3.0x';
