@@ -35,7 +35,7 @@
     flex-direction: column;
   }
 
-  /* ヘッダー・FNAF状況バー */
+  /* ヘッダー */
   header {
     background: #141722;
     border-bottom: 2px solid var(--border-color);
@@ -45,6 +45,7 @@
     justify-content: space-between;
     flex-shrink: 0;
     height: 60px;
+    gap: 12px;
   }
 
   .header-left {
@@ -54,18 +55,19 @@
   }
 
   .app-title {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: bold;
     display: flex;
     align-items: center;
     gap: 6px;
     color: #fff;
+    white-space: nowrap;
   }
 
   .badge-ai {
     background: #e74c3c;
     color: #fff;
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     padding: 2px 6px;
     border-radius: 4px;
     font-weight: normal;
@@ -73,17 +75,17 @@
 
   .game-clock-container {
     background: #000;
-    padding: 6px 14px;
+    padding: 5px 12px;
     border-radius: 6px;
     border: 1px solid #333;
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
     font-family: monospace;
   }
 
   .clock-display {
-    font-size: 1.3rem;
+    font-size: 1.25rem;
     font-weight: bold;
     color: #2ecc71;
     letter-spacing: 1px;
@@ -94,28 +96,30 @@
   }
 
   .timer-desc {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: var(--text-secondary);
   }
 
   .header-right {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    flex-shrink: 0;
   }
 
   .btn {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
-    padding: 6px 12px;
+    padding: 6px 10px;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     transition: all 0.2s;
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    white-space: nowrap;
   }
   .btn:hover {
     background: var(--bg-card-hover);
@@ -130,16 +134,11 @@
   .btn-primary:hover {
     background: #05b04b;
   }
-  .btn-danger {
-    background: var(--accent-red);
-    color: #fff;
-    border: none;
-  }
 
-  /* メイングリッド配置（3ペイン） */
+  /* メイングリッド配置（3ペイン・レスポンシブ最適化） */
   .main-container {
     display: grid;
-    grid-template-columns: 290px 1fr 360px;
+    grid-template-columns: 240px 1fr 390px;
     flex: 1;
     height: calc(100vh - 60px);
     overflow: hidden;
@@ -153,18 +152,20 @@
     flex-direction: column;
     overflow: hidden;
     height: 100%;
+    min-width: 0;
   }
 
   .pane-header {
-    padding: 10px 14px;
+    padding: 10px 12px;
     background: rgba(0, 0, 0, 0.2);
     border-bottom: 1px solid var(--border-color);
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     font-weight: bold;
     color: var(--text-secondary);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-shrink: 0;
   }
 
   /* 左ペイン：チャット一覧 */
@@ -176,12 +177,12 @@
   .chat-item {
     display: flex;
     align-items: center;
-    padding: 12px 14px;
+    padding: 10px 12px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     cursor: pointer;
     position: relative;
     transition: background 0.15s;
-    gap: 12px;
+    gap: 10px;
   }
   .chat-item:hover {
     background: var(--bg-card-hover);
@@ -192,14 +193,14 @@
   }
 
   .avatar {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: #4b6584;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     position: relative;
     flex-shrink: 0;
   }
@@ -212,8 +213,8 @@
     color: #fff;
     font-size: 0.65rem;
     font-weight: bold;
-    min-width: 18px;
-    height: 18px;
+    min-width: 17px;
+    height: 17px;
     border-radius: 9px;
     display: flex;
     align-items: center;
@@ -236,28 +237,30 @@
   .chat-item-top {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 4px;
+    align-items: baseline;
+    margin-bottom: 2px;
   }
 
   .char-name {
     font-weight: bold;
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
   .char-role-tag {
-    font-size: 0.65rem;
-    padding: 1px 5px;
+    font-size: 0.62rem;
+    padding: 1px 4px;
     border-radius: 3px;
     background: #2f3542;
     color: #ced6e0;
     margin-left: 4px;
+    flex-shrink: 0;
   }
 
   .chat-last-msg {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: var(--text-secondary);
     white-space: nowrap;
     overflow: hidden;
@@ -269,24 +272,24 @@
     display: flex;
     flex-direction: column;
     gap: 3px;
-    margin-top: 5px;
+    margin-top: 4px;
   }
 
   .gauge-row {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.65rem;
+    font-size: 0.62rem;
   }
 
   .gauge-label {
-    width: 44px;
+    width: 42px;
     color: var(--text-secondary);
   }
 
   .gauge-bar-bg {
     flex: 1;
-    height: 6px;
+    height: 5px;
     background: #2f3542;
     border-radius: 3px;
     overflow: hidden;
@@ -313,54 +316,58 @@
     flex-direction: column;
     height: 100%;
     position: relative;
+    min-width: 0; /* 必須：右ペインを押し出さない */
   }
 
   .talk-header {
-    padding: 10px 16px;
+    padding: 8px 14px;
     background: var(--bg-card);
     border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-shrink: 0;
+    gap: 10px;
   }
 
   .talk-header-user {
     display: flex;
     align-items: center;
     gap: 10px;
+    min-width: 0;
   }
 
   .talk-header-gauges {
     display: flex;
-    gap: 16px;
+    gap: 12px;
+    flex-shrink: 0;
   }
 
   .talk-header-gauge-item {
     display: flex;
     flex-direction: column;
     gap: 2px;
-    min-width: 110px;
+    width: 105px;
   }
 
   .talk-history-container {
     flex: 1;
     overflow-y: auto;
-    padding: 16px;
+    padding: 14px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
 
   .history-divider {
     text-align: center;
     position: relative;
-    margin: 8px 0;
+    margin: 4px 0;
   }
   .history-divider span {
     background: #1a1e2c;
     color: var(--text-secondary);
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     padding: 3px 10px;
     border-radius: 12px;
     border: 1px solid var(--border-color);
@@ -383,9 +390,9 @@
   }
 
   .msg-bubble {
-    padding: 9px 13px;
+    padding: 8px 12px;
     border-radius: 14px;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     line-height: 1.4;
     position: relative;
     word-break: break-word;
@@ -420,31 +427,32 @@
   .talk-input-area {
     background: var(--bg-card);
     border-top: 1px solid var(--border-color);
-    padding: 12px 16px;
+    padding: 10px 14px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     flex-shrink: 0;
   }
 
   /* テスト用クイック候補 */
   .quick-reply-bar {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     overflow-x: auto;
-    padding-bottom: 4px;
+    padding-bottom: 2px;
   }
 
   .quick-reply-btn {
     background: #252b3d;
     border: 1px solid var(--border-color);
     color: #ced6e0;
-    padding: 6px 12px;
-    border-radius: 12px;
-    font-size: 0.78rem;
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 0.74rem;
     white-space: nowrap;
     cursor: pointer;
     transition: all 0.15s;
+    flex-shrink: 0;
   }
   .quick-reply-btn:hover {
     background: #3742fa;
@@ -462,7 +470,7 @@
 
   .input-form {
     display: flex;
-    gap: 10px;
+    gap: 8px;
   }
 
   .text-input {
@@ -471,49 +479,57 @@
     border: 1px solid var(--border-color);
     color: #fff;
     padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 0.9rem;
+    border-radius: 6px;
+    font-size: 0.88rem;
     outline: none;
+    min-width: 0;
   }
   .text-input:focus {
     border-color: var(--accent-line);
   }
 
-  /* 右ペイン：スケジュール帳 ＆ レベルデザイン調整 */
+  /* 右ペイン：スケジュール帳 ＆ レベルデザイン調整（完全収容設計） */
   .right-pane {
     display: flex;
     flex-direction: column;
     height: 100%;
     border-right: none;
+    width: 390px;
+    min-width: 360px;
+    background: #181b26;
   }
 
   .tab-bar {
     display: flex;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.35);
     border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
   }
 
   .tab-btn {
     flex: 1;
-    padding: 9px;
+    padding: 10px 4px;
     background: none;
     border: none;
     color: var(--text-secondary);
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: 0.76rem;
     font-weight: bold;
     border-bottom: 2px solid transparent;
     transition: all 0.2s;
+    text-align: center;
+    white-space: nowrap;
   }
   .tab-btn.active {
     color: var(--accent-line);
     border-bottom-color: var(--accent-line);
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.03);
   }
 
   .tab-content {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 12px;
     display: none;
   }
@@ -521,63 +537,81 @@
     display: block;
   }
 
-  /* スケジュール帳カレンダー表示 */
+  /* スケジュール帳カレンダー表示（横幅ピッタリ設計） */
   .schedule-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
 
   .schedule-mode-select {
     background: #252b3d;
     border: 1px solid var(--border-color);
     color: #fff;
-    font-size: 0.75rem;
-    padding: 3px 6px;
+    font-size: 0.72rem;
+    padding: 2px 6px;
     border-radius: 4px;
+  }
+
+  .schedule-table-container {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: #11141e;
   }
 
   .schedule-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     text-align: center;
+    table-layout: fixed;
   }
 
   .schedule-table th, .schedule-table td {
     border: 1px solid var(--border-color);
-    padding: 6px 2px;
+    padding: 5px 1px;
+    height: 32px;
+    vertical-align: middle;
+    word-break: break-all;
   }
 
   .schedule-table th {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.04);
     color: var(--text-secondary);
+    font-weight: bold;
   }
 
   .slot-busy-work {
-    background: rgba(231, 76, 60, 0.25);
+    background: rgba(231, 76, 60, 0.3);
     color: #ff6b6b;
     font-weight: bold;
+    font-size: 0.65rem;
   }
 
   .slot-busy-date {
-    background: rgba(155, 89, 182, 0.25);
+    background: rgba(155, 89, 182, 0.35);
     color: #d29be2;
     font-weight: bold;
+    font-size: 0.65rem;
   }
 
   .slot-free {
-    background: rgba(46, 204, 113, 0.1);
+    background: rgba(46, 204, 113, 0.08);
     color: #2ecc71;
   }
 
   .schedule-legend {
     display: flex;
-    gap: 8px;
-    margin-top: 10px;
-    font-size: 0.7rem;
+    justify-content: space-around;
+    margin-top: 8px;
+    font-size: 0.68rem;
     color: var(--text-secondary);
+    background: rgba(0,0,0,0.2);
+    padding: 5px 8px;
+    border-radius: 4px;
   }
   .legend-item {
     display: flex;
@@ -585,8 +619,8 @@
     gap: 4px;
   }
   .legend-box {
-    width: 10px;
-    height: 10px;
+    width: 9px;
+    height: 9px;
     border-radius: 2px;
   }
 
@@ -596,11 +630,11 @@
     border: 1px solid var(--border-color);
     border-radius: 6px;
     padding: 10px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
 
   .debug-title {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: bold;
     color: var(--accent-warn);
     margin-bottom: 8px;
@@ -614,9 +648,9 @@
   .param-label {
     display: flex;
     justify-content: space-between;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     color: var(--text-secondary);
-    margin-bottom: 3px;
+    margin-bottom: 2px;
   }
   .param-slider {
     width: 100%;
@@ -631,13 +665,14 @@
   }
 
   .btn-preset {
-    font-size: 0.75rem;
-    padding: 6px;
+    font-size: 0.72rem;
+    padding: 6px 4px;
     border-radius: 4px;
     background: #252b3d;
     border: 1px solid var(--border-color);
     color: #f1f2f6;
     cursor: pointer;
+    text-align: center;
   }
   .btn-preset:hover {
     background: #3742fa;
@@ -650,17 +685,17 @@
     border: 1px solid var(--border-color);
     border-radius: 4px;
     padding: 6px;
-    height: 140px;
+    height: 380px;
     overflow-y: auto;
     font-family: monospace;
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     display: flex;
     flex-direction: column;
     gap: 4px;
   }
 
   .log-entry {
-    line-height: 1.3;
+    line-height: 1.35;
   }
   .log-warn { color: var(--accent-warn); }
   .log-danger { color: var(--accent-red); font-weight: bold; }
@@ -701,7 +736,7 @@
   }
 
   .modal-title {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
     font-weight: bold;
     margin-bottom: 12px;
   }
@@ -709,7 +744,7 @@
   .title-clear { color: #2ecc71; }
 
   .modal-desc {
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     color: var(--text-secondary);
     line-height: 1.5;
     margin-bottom: 20px;
@@ -720,11 +755,10 @@
     border-radius: 6px;
     padding: 12px;
     margin-bottom: 20px;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     text-align: left;
   }
 
-  /* 画面揺れエフェクト */
   .shake {
     animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
   }
@@ -743,13 +777,13 @@
   <div class="header-left">
     <div class="app-title">
       <span>📱 浮気ゲーム</span>
-      <span class="badge-ai">AI代理返信プロトタイプ</span>
+      <span class="badge-ai">AI代理返信</span>
     </div>
     <div class="game-clock-container">
       <div class="clock-display" id="clockDisplay">21:30</div>
       <div>
-        <div style="color:#ced6e0; font-size:0.8rem; font-weight:bold;">主人帰宅: 24:00</div>
-        <div class="timer-desc" id="timerRemainDesc">残り 5分00秒 (300秒)</div>
+        <div style="color:#ced6e0; font-size:0.75rem; font-weight:bold;">帰宅 24:00</div>
+        <div class="timer-desc" id="timerRemainDesc">残り 5分00秒</div>
       </div>
     </div>
   </div>
@@ -770,7 +804,7 @@
       <span id="unreadTotalBadge" style="color:var(--accent-red); font-size:0.75rem;">未読 0件</span>
     </div>
     <div class="chat-list" id="chatListContainer">
-      <!-- JSで動的生成 -->
+      <!-- 動的生成 -->
     </div>
   </div>
 
@@ -779,15 +813,18 @@
     <div class="talk-header" id="talkHeader">
       <div class="talk-header-user">
         <div class="avatar" id="activeAvatar">👩‍💼</div>
-        <div>
-          <div style="font-weight:bold; font-size:1.05rem;" id="activeName">佐々木 玲奈 (女上司)</div>
-          <div style="font-size:0.75rem; color:var(--text-secondary);" id="activeSubtitle">ロジカル系・朝型フレックス</div>
+        <div style="min-width:0;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="font-weight:bold; font-size:0.95rem; white-space:nowrap;" id="activeName">佐々木 玲奈</span>
+            <span class="char-role-tag" id="activeRoleTag">女上司</span>
+          </div>
+          <div style="font-size:0.72rem; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="activeSubtitle">ロジカル系・朝型フレックス</div>
         </div>
       </div>
       <div class="talk-header-gauges">
         <div class="talk-header-gauge-item">
-          <div style="display:flex; justify-content:space-between; font-size:0.75rem;">
-            <span>Patience (苛立ち)</span>
+          <div style="display:flex; justify-content:space-between; font-size:0.72rem;">
+            <span>Patience</span>
             <span id="activePatienceVal">5 / 5</span>
           </div>
           <div class="gauge-bar-bg">
@@ -795,8 +832,8 @@
           </div>
         </div>
         <div class="talk-header-gauge-item">
-          <div style="display:flex; justify-content:space-between; font-size:0.75rem;">
-            <span>Trust (信頼)</span>
+          <div style="display:flex; justify-content:space-between; font-size:0.72rem;">
+            <span>Trust</span>
             <span id="activeTrustVal">5 / 5</span>
           </div>
           <div class="gauge-bar-bg">
@@ -808,17 +845,17 @@
 
     <!-- チャットログ -->
     <div class="talk-history-container" id="talkHistory">
-      <!-- 過去ログと最新着信メッセージ -->
+      <!-- 過去ログ -->
     </div>
 
     <!-- 入力部 -->
     <div class="talk-input-area">
-      <div style="font-size:0.72rem; color:var(--text-secondary); display:flex; justify-content:space-between;">
+      <div style="font-size:0.7rem; color:var(--text-secondary); display:flex; justify-content:space-between;">
         <span>💡 クイック返答候補 (クリックで即送信):</span>
-        <span style="color:#70a1ff;">キーボード直接入力もOK ↵</span>
+        <span style="color:#70a1ff;">直接入力もOK ↵</span>
       </div>
       <div class="quick-reply-bar" id="quickReplyBar">
-        <!-- JSで動的生成 -->
+        <!-- 動的生成 -->
       </div>
       <form class="input-form" id="chatInputForm">
         <input type="text" class="text-input" id="chatInput" placeholder="メッセージを入力...（例: ごめん、その日は仕事なんだ / 空いてるよ！）" autocomplete="off">
@@ -830,15 +867,15 @@
   <!-- 右ペイン: スケジュール帳 & レベルデザイン調整 -->
   <div class="pane right-pane">
     <div class="tab-bar">
-      <button class="tab-btn active" data-tab="tabSchedule">📅 スケジュール帳</button>
-      <button class="tab-btn" data-tab="tabDebug">⚙️ レベルデザイン調整</button>
-      <button class="tab-btn" data-tab="tabLog">📜 デバッグログ</button>
+      <button class="tab-btn active" data-tab="tabSchedule">📅 予定表</button>
+      <button class="tab-btn" data-tab="tabDebug">⚙️ 調整</button>
+      <button class="tab-btn" data-tab="tabLog">📜 ログ</button>
     </div>
 
     <!-- タブ1: スケジュール帳 -->
     <div class="tab-content active" id="tabSchedule">
       <div class="schedule-header">
-        <span style="font-weight:bold; font-size:0.85rem;">週間予定表 (時刻の正本)</span>
+        <span style="font-weight:bold; font-size:0.8rem;">週間予定表 (正本)</span>
         <select class="schedule-mode-select" id="scheduleLevelSelect">
           <option value="level1">Level 1: 昼・夜 (13枠)</option>
           <option value="level2">Level 2: 朝・昼・夜 (21枠)</option>
@@ -846,21 +883,20 @@
         </select>
       </div>
 
-      <div id="scheduleTableWrapper">
+      <div class="schedule-table-container" id="scheduleTableWrapper">
         <!-- JSで表を動的生成 -->
       </div>
 
       <div class="schedule-legend">
         <div class="legend-item"><div class="legend-box" style="background:#ff4757;"></div> 仕事(確定)</div>
         <div class="legend-item"><div class="legend-box" style="background:#9b59b6;"></div> 他の約束</div>
-        <div class="legend-item"><div class="legend-box" style="background:#2ecc71;"></div> 空き</div>
+        <div class="legend-item"><div class="legend-box" style="background:#2ecc71;"></div> 空き枠</div>
       </div>
 
-      <div style="margin-top:14px; padding:10px; background:rgba(0,0,0,0.25); border-radius:6px; font-size:0.75rem; line-height:1.4; color:var(--text-secondary);">
-        <b style="color:#fff;">📌 スケジュール確認のルール:</b><br>
-        ・主人公はフルフレックス勤務。仕事の予定は動かせません。<br>
-        ・既に埋まっている枠に「空いてるよ」と返答すると<b>予定衝突 (大ダメ Trust -2)</b>！<br>
-        ・空いている枠なら「OK、大丈夫」で<b>合意成立 (Trust維持)</b>。
+      <div style="margin-top:10px; padding:8px; background:rgba(0,0,0,0.25); border-radius:6px; font-size:0.72rem; line-height:1.4; color:var(--text-secondary);">
+        <b style="color:#fff;">📌 スケジュール確認ルール:</b><br>
+        ・仕事枠に「空いてるよ」と返答 ➔ <b>予定衝突 (Trust -2)</b><br>
+        ・空き枠なら「OK」で <b>約束成立 (Trust維持)</b>
       </div>
     </div>
 
@@ -871,38 +907,38 @@
           <span>🎮 難易度プリセット</span>
         </div>
         <div class="preset-buttons">
-          <button class="btn-preset" onclick="applyPreset('memoStandard')">📝 手書きメモ標準</button>
-          <button class="btn-preset" onclick="applyPreset('easy')">🌱 ゆったり検証</button>
-          <button class="btn-preset" onclick="applyPreset('hard')">🔥 修羅場(高密度)</button>
-          <button class="btn-preset" onclick="applyPreset('speed3x')">⏩ 3倍速テスト</button>
+          <button class="btn-preset" onclick="applyPreset('memoStandard')">📝 手書き標準</button>
+          <button class="btn-preset" onclick="applyPreset('easy')">🌱 ゆったり</button>
+          <button class="btn-preset" onclick="applyPreset('hard')">🔥 修羅場</button>
+          <button class="btn-preset" onclick="applyPreset('speed3x')">⏩ 3倍速</button>
         </div>
       </div>
 
       <div class="debug-group">
         <div class="debug-title">
-          <span>⏱️ 時間・タイマー設定</span>
+          <span>⏱️ 時間・着信頻度</span>
           <span id="lblSpeed">1.0x</span>
         </div>
         <div class="param-row">
-          <div class="param-label"><span>ゲーム進行速度</span><span id="valSpeed">1.0倍</span></div>
+          <div class="param-label"><span>進行速度</span><span id="valSpeed">1.0倍</span></div>
           <input type="range" class="param-slider" id="sldSpeed" min="0.5" max="5.0" step="0.5" value="1.0">
         </div>
         <div class="param-row">
-          <div class="param-label"><span>着信平均インターバル (メッセージ頻度)</span><span id="valInterval">14秒</span></div>
+          <div class="param-label"><span>着信平均間隔</span><span id="valInterval">14秒</span></div>
           <input type="range" class="param-slider" id="sldInterval" min="5" max="30" step="1" value="14">
         </div>
       </div>
 
       <div class="debug-group">
         <div class="debug-title">
-          <span>⏳ 放置ペナルティ設定 (手書きメモ準拠)</span>
+          <span>⏳ 放置ペナルティ設定</span>
         </div>
         <div class="param-row">
-          <div class="param-label"><span>初手放置猶予 (Patience -1まで)</span><span id="valFirstWait">20秒</span></div>
+          <div class="param-label"><span>初手放置猶予</span><span id="valFirstWait">20秒</span></div>
           <input type="range" class="param-slider" id="sldFirstWait" min="5" max="45" step="1" value="20">
         </div>
         <div class="param-row">
-          <div class="param-label"><span>追撃放置間隔 (次の -1まで)</span><span id="valNextWait">10秒</span></div>
+          <div class="param-label"><span>追撃放置間隔</span><span id="valNextWait">10秒</span></div>
           <input type="range" class="param-slider" id="sldNextWait" min="3" max="25" step="1" value="10">
         </div>
       </div>
@@ -912,23 +948,20 @@
           <span>💔 ダメージ設定</span>
         </div>
         <div class="param-row">
-          <div class="param-label"><span>Patience 0時のTrustダメージ</span><span id="valPatienceZeroDmg">-1</span></div>
+          <div class="param-label"><span>P0時Trustダメージ</span><span id="valPatienceZeroDmg">-1</span></div>
           <input type="range" class="param-slider" id="sldPatienceZeroDmg" min="1" max="3" step="1" value="1">
         </div>
         <div class="param-row">
-          <div class="param-label"><span>予定衝突のTrustダメージ</span><span id="valScheduleConflictDmg">-2</span></div>
+          <div class="param-label"><span>予定衝突ダメージ</span><span id="valScheduleConflictDmg">-2</span></div>
           <input type="range" class="param-slider" id="sldScheduleConflictDmg" min="1" max="5" step="1" value="2">
         </div>
       </div>
 
       <div class="debug-group">
         <div class="debug-title">
-          <span>👥 会話相手キャラクター設定 (メモ準拠)</span>
+          <span>👥 現在の3人</span>
         </div>
-        <div style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:6px;">
-          現在アクティブな3人:
-        </div>
-        <div id="activeCharBadges" style="display:flex; flex-direction:column; gap:4px; font-size:0.75rem;">
+        <div id="activeCharBadges" style="display:flex; flex-direction:column; gap:4px; font-size:0.72rem;">
           <!-- 動的生成 -->
         </div>
       </div>
@@ -936,12 +969,12 @@
 
     <!-- タブ3: デバッグログ -->
     <div class="tab-content" id="tabLog">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <span style="font-weight:bold; font-size:0.8rem;">システム & イベントログ</span>
-        <button class="btn" style="padding:2px 6px; font-size:0.7rem;" onclick="clearLogs()">クリア</button>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <span style="font-weight:bold; font-size:0.76rem;">システムログ</span>
+        <button class="btn" style="padding:2px 6px; font-size:0.68rem;" onclick="clearLogs()">クリア</button>
       </div>
       <div class="event-log-container" id="eventLogContainer">
-        <!-- ログ出力 -->
+        <!-- ログ -->
       </div>
     </div>
   </div>
@@ -963,7 +996,7 @@
 
 <script>
 /* =========================================================================
-   Web Audio API による効果音ジェネレータ（外部ファイル不要）
+   Web Audio API 効果音
    ========================================================================= */
 const SoundEffect = {
   ctx: null,
@@ -1013,16 +1046,16 @@ const SoundEffect = {
 };
 
 /* =========================================================================
-   キャラクターデータ＆豊富な対話プール（手書きメモ最新仕様準拠）
+   キャラクターデータ＆豊富な対話プール
    ========================================================================= */
 const CHARACTERS_DATA = [
   {
     id: 'boss',
     name: '佐々木 玲奈',
-    roleName: '女上司 (ロジカル系)',
+    roleTag: '女上司',
     avatar: '👩‍💼',
     type: 'logical',
-    bio: '事務的会話中心。意識高い朝型フレックス。返信には寛容だが予定の不整合に超厳しい。',
+    bio: 'ロジカル系・朝型フレックス。返信には寛容だが予定不整合に厳しい。',
     paramProfile: { patienceRate: 0.7, trustLossMultiplier: 1.5 },
     initialTrust: 5,
     initialPatience: 5,
@@ -1033,7 +1066,6 @@ const CHARACTERS_DATA = [
       { sender: 'outgoing', text: '水曜夜ですね、予定確認しておきます！', time: '18:15' },
       { sender: 'incoming', text: 'よろしく。仕事の納期と予定管理だけはきっちりしてね。', time: '19:00' }
     ],
-    // 豊富な会話イベントプール（固定＋動的着信で何分でも継続！）
     pool: [
       {
         msg: 'まだ起きてる？さっき言ってた来週水曜の夜、予定どうなってるか教えて。',
@@ -1132,10 +1164,10 @@ const CHARACTERS_DATA = [
   {
     id: 'childhood',
     name: '小林 栞',
-    roleName: '幼馴染 (ふつうより)',
+    roleTag: '幼馴染',
     avatar: '👧',
     type: 'childhood',
-    bio: '昔の話をよくする。過去ログ確認が必須！一般職なので平日夕〜土日暇。TRUSTが減りづらい。',
+    bio: '昔の話をよくする（過去ログ復元必須）。平日夕〜土日暇。TRUST減りづらい。',
     paramProfile: { patienceRate: 1.0, trustLossMultiplier: 0.7 },
     initialTrust: 5,
     initialPatience: 5,
@@ -1230,10 +1262,10 @@ const CHARACTERS_DATA = [
   {
     id: 'gal',
     name: 'あかり',
-    roleName: '夜職ギャル (夜型)',
+    roleTag: '夜職ギャル',
     avatar: '💄',
     type: 'gal',
-    bio: 'ムダ話やスタンプが多い。天然で会話が浮遊。完全夜型。返信ペースや予定はふつう。',
+    bio: 'ムダ話・スタンプ多め。天然で会話が浮遊。完全夜型。P・Tふつう。',
     paramProfile: { patienceRate: 1.0, trustLossMultiplier: 1.0 },
     initialTrust: 5,
     initialPatience: 5,
@@ -1337,65 +1369,65 @@ const SCHEDULE_DATA = {
     slots: {
       '日_昼': { type: 'free', text: '空き' },
       '日_夜': { type: 'date', text: '先約' },
-      '月_昼': { type: 'work', text: '会議/仕事' },
+      '月_昼': { type: 'work', text: '仕事' },
       '月_夜': { type: 'free', text: '空き' },
       '火_昼': { type: 'free', text: '空き' },
       '火_夜': { type: 'work', text: '残業' },
       '水_昼': { type: 'free', text: '空き' },
-      '水_夜': { type: 'work', text: '納期作業' },
-      '木_昼': { type: 'work', text: '客先MTG' },
+      '水_夜': { type: 'work', text: '納期' },
+      '木_昼': { type: 'work', text: 'MTG' },
       '木_夜': { type: 'free', text: '空き' },
       '金_昼': { type: 'free', text: '空き' },
-      '金_夜': { type: 'date', text: '課の懇親会' },
+      '金_夜': { type: 'date', text: '懇親会' },
       '土_昼': { type: 'free', text: '空き' },
-      '土_夜': { type: 'work', text: '休日出勤' }
+      '土_夜': { type: 'work', text: '出勤' }
     }
   },
   level2: {
     days: ['日', '月', '火', '水', '木', '金', '土'],
     times: ['朝', '昼', '夜'],
     slots: {
-      '日_朝': { type: 'free', text: '空き' },
-      '日_昼': { type: 'free', text: '空き' },
+      '日_朝': { type: 'free', text: '空' },
+      '日_昼': { type: 'free', text: '空' },
       '日_夜': { type: 'date', text: '先約' },
-      '月_朝': { type: 'free', text: '空き' },
-      '月_昼': { type: 'work', text: '会議' },
-      '月_夜': { type: 'free', text: '空き' },
-      '火_朝': { type: 'work', text: '早朝MTG' },
-      '火_昼': { type: 'free', text: '空き' },
+      '月_朝': { type: 'free', text: '空' },
+      '月_昼': { type: 'work', text: '仕事' },
+      '月_夜': { type: 'free', text: '空' },
+      '火_朝': { type: 'work', text: 'MTG' },
+      '火_昼': { type: 'free', text: '空' },
       '火_夜': { type: 'work', text: '残業' },
-      '水_朝': { type: 'free', text: '空き' },
-      '水_昼': { type: 'free', text: '空き' },
+      '水_朝': { type: 'free', text: '空' },
+      '水_昼': { type: 'free', text: '空' },
       '水_夜': { type: 'work', text: '納期' },
-      '木_朝': { type: 'free', text: '空き' },
+      '木_朝': { type: 'free', text: '空' },
       '木_昼': { type: 'work', text: '客先' },
-      '木_夜': { type: 'free', text: '空き' },
-      '金_朝': { type: 'free', text: '空き' },
-      '金_昼': { type: 'free', text: '空き' },
+      '木_夜': { type: 'free', text: '空' },
+      '金_朝': { type: 'free', text: '空' },
+      '金_昼': { type: 'free', text: '空' },
       '金_夜': { type: 'date', text: '懇親会' },
-      '土_朝': { type: 'free', text: '空き' },
-      '土_昼': { type: 'free', text: '空き' },
+      '土_朝': { type: 'free', text: '空' },
+      '土_昼': { type: 'free', text: '空' },
       '土_夜': { type: 'work', text: '出勤' }
     }
   },
   level3: {
     days: ['日', '月', '火', '水', '木', '金', '土'],
-    times: ['午前', 'ランチ', '午後', '夜', '晩'],
+    times: ['前', '昼', '後', '夜', '晩'],
     slots: {}
   }
 };
 
 ['日','月','火','水','木','金','土'].forEach(d => {
-  ['午前', 'ランチ', '午後', '夜', '晩'].forEach(t => {
-    const isWork = (d === '月' && t==='午前') || (d === '火' && t==='晩') || (d === '水' && t==='夜') || (d === '土' && t==='夜');
+  ['前', '昼', '後', '夜', '晩'].forEach(t => {
+    const isWork = (d === '月' && t==='前') || (d === '火' && t==='晩') || (d === '水' && t==='夜') || (d === '土' && t==='夜');
     SCHEDULE_DATA.level3.slots[`${d}_${t}`] = isWork 
-      ? { type: 'work', text: '仕事' } 
-      : { type: 'free', text: '空き' };
+      ? { type: 'work', text: '仕' } 
+      : { type: 'free', text: '空' };
   });
 });
 
 /* =========================================================================
-   ゲーム状態管理 (Game State)
+   ゲーム状態管理
    ========================================================================= */
 const state = {
   gameDurationSec: 300,
@@ -1404,14 +1436,13 @@ const state = {
   isGameOver: false,
   isCleared: false,
   
-  // レベルデザイン調整設定
   config: {
     speedMultiplier: 1.0,
-    firstWaitSec: 20,         // 手書きメモ: 20秒放置で -1
-    nextWaitSec: 10,          // 手書きメモ: 10秒毎に -1
-    patienceZeroDmg: 1,       // 手書きメモ: 0で Trust -1
-    scheduleConflictDmg: 2,   // 手書きメモ: 大ダメ -2
-    baseIntervalSec: 14,      // 着信インターバル目安
+    firstWaitSec: 20,
+    nextWaitSec: 10,
+    patienceZeroDmg: 1,
+    scheduleConflictDmg: 2,
+    baseIntervalSec: 14,
     currentScheduleLevel: 'level1'
   },
 
@@ -1419,9 +1450,7 @@ const state = {
   activeCharId: 'boss',
   activeTab: 'tabSchedule',
 
-  // 動的着信ジェネレータ管理
-  spawnTimer: 0,
-  usedPrompts: {}, // キャラ毎の消化インデックス
+  spawnTimer: 4,
 
   stats: {
     repliesCount: 0,
@@ -1433,15 +1462,14 @@ const state = {
 };
 
 /* =========================================================================
-   ゲーム初期化
+   初期化
    ========================================================================= */
 function initGame() {
   state.elapsedSec = 0;
   state.isPaused = false;
   state.isGameOver = false;
   state.isCleared = false;
-  state.spawnTimer = 4; // 最初は4秒後に初弾着信！
-  state.usedPrompts = {};
+  state.spawnTimer = 4;
   state.stats = { repliesCount: 0, scheduleConflicts: 0, nameTraps: 0, patienceZeroCount: 0, trustLossTotal: 0 };
 
   state.characters = JSON.parse(JSON.stringify(CHARACTERS_DATA));
@@ -1469,7 +1497,7 @@ function initGame() {
 }
 
 /* =========================================================================
-   メインゲームループ (100ms周期)
+   メインループ
    ========================================================================= */
 let lastTimestamp = performance.now();
 function gameLoop(now) {
@@ -1504,7 +1532,6 @@ function updateClockDisplay() {
   const clockEl = document.getElementById('clockDisplay');
   clockEl.textContent = timeStr;
 
-  // 終盤ラッシュ（残り90秒以下 / 23:15以降）は時計が赤く点滅！
   const isRush = state.elapsedSec >= 210;
   if (isRush) {
     clockEl.classList.add('rush');
@@ -1516,29 +1543,25 @@ function updateClockDisplay() {
   const rMin = Math.floor(remainSec / 60);
   const rSec = remainSec % 60;
   document.getElementById('timerRemainDesc').textContent = 
-    `残り ${rMin}分${String(rSec).padStart(2, '0')}秒 (${remainSec}秒)${isRush ? ' 🔥終盤ラッシュ!' : ''}`;
+    `残り ${rMin}分${String(rSec).padStart(2, '0')}秒${isRush ? ' 🔥ラッシュ!' : ''}`;
 }
 
 /* =========================================================================
-   動的着信ジェネレータ（メッセージが絶対に途切れない仕組み）
+   動的着信
    ========================================================================= */
 function updateDynamicSpawner(dt) {
   state.spawnTimer -= dt;
 
   if (state.spawnTimer <= 0) {
-    // 終盤ラッシュ（210秒〜）はインターバルを半減！手書きメモの「終盤同時未読3件」を完全再現
     const isRush = state.elapsedSec >= 210;
     const currentInterval = isRush 
       ? Math.max(5, state.config.baseIntervalSec * 0.45) 
       : state.config.baseIntervalSec;
     
-    // 次回の着信タイマー設定（少しランダム性をもたせる）
     state.spawnTimer = currentInterval * (0.8 + Math.random() * 0.4);
 
-    // 未返信でないキャラ、または未読が少ないキャラを優先して選出
     const candidates = state.characters.filter(c => c.unread < 2);
     if (candidates.length > 0) {
-      // ランダムに1人選出
       const targetChar = candidates[Math.floor(Math.random() * candidates.length)];
       triggerNextMessageForChar(targetChar);
     }
@@ -1546,7 +1569,6 @@ function updateDynamicSpawner(dt) {
 }
 
 function triggerNextMessageForChar(char) {
-  // 会話プールから取得（尽きたらループ）
   const pool = char.pool;
   if (!pool || pool.length === 0) return;
 
@@ -1569,7 +1591,7 @@ function triggerIncomingMessage(char, prompt) {
   });
 
   SoundEffect.notify();
-  addLog(`📩 [着信] ${char.name}: 「${prompt.msg.substring(0, 18)}…」`, 'log-info');
+  addLog(`📩 [着信] ${char.name}: 「${prompt.msg.substring(0, 16)}…」`, 'log-info');
 
   renderChatList();
   if (char.id === state.activeCharId) {
@@ -1587,8 +1609,6 @@ function updateCharacters(dt) {
     if (char.hasUnrepliedMsg) {
       char.waitTimer += dt;
 
-      // 手書きメモ仕様:
-      // 「20秒放置で -1、そこから 10秒ごとに -1。0になったら TRUST -1」
       const firstWait = state.config.firstWaitSec;
       const nextWait = state.config.nextWaitSec;
 
@@ -1626,7 +1646,7 @@ function updateCharacters(dt) {
 }
 
 /* =========================================================================
-   返信処理 ＆ 相手の生きたリアクション（チャット継続の要）
+   返信処理
    ========================================================================= */
 function handleSendMessage(text, replyMeta = null) {
   const char = state.characters.find(c => c.id === state.activeCharId);
@@ -1642,7 +1662,6 @@ function handleSendMessage(text, replyMeta = null) {
   char.hasUnrepliedMsg = false;
   char.unread = 0;
   char.waitTimer = 0;
-  // 返信するとPatienceが回復！
   char.patience = Math.min(char.initialPatience, char.patience + 2);
 
   addLog(`📤 [送信] to ${char.name}: 「${text}」`, 'log-success');
@@ -1656,9 +1675,8 @@ function handleSendMessage(text, replyMeta = null) {
 }
 
 function evaluateReply(char, text, replyMeta, prompt) {
-  char.currentPrompt = null; // 返答完了
+  char.currentPrompt = null;
 
-  // 1. クイックボタン押下時の判定
   if (replyMeta) {
     if (replyMeta.type === 'trap_name') {
       triggerInstantGameOver(char, `名前ミス（${replyMeta.targetName}と呼び間違え）`);
@@ -1670,7 +1688,6 @@ function evaluateReply(char, text, replyMeta, prompt) {
     }
     if (replyMeta.type === 'wrong_memory') {
       applyDamage(char, 2, '過去の事実誤認');
-      // キャラからのツッコミ返信
       scheduleReaction(char, prompt?.reactionWrong || 'え…？それ誰の話？そんなこと言ってないよね？');
       return;
     }
@@ -1685,8 +1702,7 @@ function evaluateReply(char, text, replyMeta, prompt) {
     }
   }
 
-  // 2. 自由テキスト入力時の解析判定
-  // (A) 名前ミス（他キャラの名前が入っているか）
+  // 自由入力判定
   const otherChars = state.characters.filter(c => c.id !== char.id);
   for (const oc of otherChars) {
     const names = [oc.name.split(' ')[0], oc.name.split(' ')[1] || ''];
@@ -1698,13 +1714,11 @@ function evaluateReply(char, text, replyMeta, prompt) {
     }
   }
 
-  // (B) AI自白
   if (text.includes('AI') || text.includes('人工知能') || text.includes('代理') || text.includes('アシスタント')) {
     triggerInstantGameOver(char, 'AI代理返信であることがバレた！');
     return;
   }
 
-  // (C) 自由入力でのスケジュール判定
   if (prompt && prompt.targetSlot) {
     const isAccepting = text.includes('空いてる') || text.includes('行ける') || text.includes('大丈夫') || text.includes('OK') || text.includes('おっけー') || text.includes('行こう') || text.includes('いいよ');
     const isDeclining = text.includes('無理') || text.includes('厳しい') || text.includes('仕事') || text.includes('予定') || text.includes('先約') || text.includes('ごめん') || text.includes('残業');
@@ -1718,7 +1732,6 @@ function evaluateReply(char, text, replyMeta, prompt) {
     }
   }
 
-  // (D) 安全な相槌 ＆ 相手からの自然なリアクション返信
   SoundEffect.success();
   addLog(`✨ [安全] ${char.name} は返信に満足しています`, 'log-info');
 
@@ -1732,7 +1745,6 @@ function evaluateReply(char, text, replyMeta, prompt) {
   scheduleReaction(char, reactMsg);
 }
 
-// 相手からのリアクション（1〜1.5秒後にピロンと返ってくる）
 function scheduleReaction(char, text) {
   setTimeout(() => {
     if (state.isGameOver || state.isCleared) return;
@@ -1755,7 +1767,6 @@ function checkScheduleAnswer(char, day, time, answerAccepted, prompt) {
   const slotInfo = SCHEDULE_DATA[currentLvl]?.slots[slotKey] || { type: 'free', text: '空き' };
 
   if (answerAccepted) {
-    // 承諾したが埋まっていた ➔ 予定衝突！
     if (slotInfo.type === 'work' || slotInfo.type === 'date') {
       state.stats.scheduleConflicts++;
       const dmg = state.config.scheduleConflictDmg;
@@ -1764,10 +1775,9 @@ function checkScheduleAnswer(char, day, time, answerAccepted, prompt) {
       const reactText = prompt?.reactionConflict || `えっ！？${day}曜の${time}って前に「${slotInfo.text}」あるって言ってなかった！？二股かけてるの…？`;
       scheduleReaction(char, reactText);
     } else {
-      // 空いていた ➔ 約束成立！
       SoundEffect.success();
       slotInfo.type = 'date';
-      slotInfo.text = `${char.name.split(' ')[0]}と約束`;
+      slotInfo.text = `${char.name.split(' ')[0]}約`;
       renderSchedule();
       addLog(`📅 [予定確定] ${char.name} と ${day}曜${time} の約束を帳に記入しました！`, 'log-success');
 
@@ -1775,7 +1785,6 @@ function checkScheduleAnswer(char, day, time, answerAccepted, prompt) {
       scheduleReaction(char, reactText);
     }
   } else {
-    // 安全に断った
     SoundEffect.success();
     addLog(`🛡️ [回避] ${day}曜${time} の誘いを安全に断りました`, 'log-info');
     scheduleReaction(char, 'そっか、忙しいなら仕方ないね！また今度にしよ！');
@@ -1866,7 +1875,7 @@ function renderChatList() {
       <div class="chat-item-info">
         <div class="chat-item-top">
           <span class="char-name">${char.name}</span>
-          <span class="char-role-tag">${char.roleName.split(' ')[0]}</span>
+          <span class="char-role-tag">${char.roleTag}</span>
         </div>
         <div class="chat-last-msg">${lastMsg}</div>
         <div class="gauges-mini">
@@ -1905,7 +1914,8 @@ function renderActiveChat() {
   if (!char) return;
 
   document.getElementById('activeAvatar').textContent = char.avatar;
-  document.getElementById('activeName').textContent = `${char.name} (${char.roleName})`;
+  document.getElementById('activeName').textContent = char.name;
+  document.getElementById('activeRoleTag').textContent = char.roleTag;
   document.getElementById('activeSubtitle').textContent = char.bio;
 
   renderGauges();
@@ -1943,7 +1953,6 @@ function renderQuickReplies(char) {
       container.appendChild(btn);
     });
   } else {
-    // 相手からのプロンプトがない時でも、常にスムーズに会話できる候補を表示！
     const defaultReplies = [
       { label: '了解！大丈夫だよ！', type: 'safe' },
       { label: 'ちょっと今仕事中で、後で連絡するね！', type: 'safe' },
@@ -2000,7 +2009,7 @@ function renderSchedule() {
   const data = SCHEDULE_DATA[lvl];
   const wrapper = document.getElementById('scheduleTableWrapper');
 
-  let html = `<table class="schedule-table"><thead><tr><th>時間</th>`;
+  let html = `<table class="schedule-table"><thead><tr><th style="width:38px;">枠</th>`;
   data.days.forEach(d => {
     html += `<th>${d}</th>`;
   });
@@ -2023,15 +2032,15 @@ function renderSchedule() {
 function renderActiveCharBadges() {
   const container = document.getElementById('activeCharBadges');
   container.innerHTML = state.characters.map(c => `
-    <div style="background:#1e2433; padding:5px 8px; border-radius:4px; display:flex; justify-content:space-between; align-items:center;">
-      <span>${c.avatar} <b>${c.name}</b> (${c.roleName.split(' ')[0]})</span>
-      <span style="font-size:0.68rem; color:#a4b0be;">P減衰: ${c.paramProfile.patienceRate}x / T損: ${c.paramProfile.trustLossMultiplier}x</span>
+    <div style="background:#1e2433; padding:4px 6px; border-radius:4px; display:flex; justify-content:space-between; align-items:center;">
+      <span>${c.avatar} <b>${c.name}</b> (${c.roleTag})</span>
+      <span style="font-size:0.65rem; color:#a4b0be;">P:${c.paramProfile.patienceRate}x / T:${c.paramProfile.trustLossMultiplier}x</span>
     </div>
   `).join('');
 }
 
 /* =========================================================================
-   イベントリスナー & コントロールパネル
+   イベントリスナー
    ========================================================================= */
 document.getElementById('chatInputForm').addEventListener('submit', (e) => {
   e.preventDefault();
@@ -2056,7 +2065,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 document.getElementById('scheduleLevelSelect').addEventListener('change', (e) => {
   state.config.currentScheduleLevel = e.target.value;
   renderSchedule();
-  addLog(`📅 スケジュール枠を 【${e.target.options[e.target.selectedIndex].text}】 に変更しました`, 'log-info');
+  addLog(`📅 スケジュール枠を 【${e.target.options[e.target.selectedIndex].text}】 に変更`, 'log-info');
 });
 
 function bindSlider(id, labelId, suffix, configKey, onChange = null) {
@@ -2103,14 +2112,14 @@ function applyPreset(presetName) {
     setSliderVal('sldPatienceZeroDmg', 1, 'valPatienceZeroDmg', '', 'patienceZeroDmg');
     setSliderVal('sldScheduleConflictDmg', 2, 'valScheduleConflictDmg', '', 'scheduleConflictDmg');
     setScheduleLevel('level1');
-    addLog('⚙️ プリセット適用: 【手書きメモ標準】(初手20s/追撃10s/衝突-2/P0時-1)', 'log-info');
+    addLog('⚙️ プリセット: 【手書き標準】(初手20s/追撃10s/衝突-2/P0時-1)', 'log-info');
   } else if (presetName === 'easy') {
     setSliderVal('sldSpeed', 1.0, 'valSpeed', '倍', 'speedMultiplier');
     setSliderVal('sldInterval', 20, 'valInterval', '秒', 'baseIntervalSec');
     setSliderVal('sldFirstWait', 35, 'valFirstWait', '秒', 'firstWaitSec');
     setSliderVal('sldNextWait', 15, 'valNextWait', '秒', 'nextWaitSec');
     setSliderVal('sldScheduleConflictDmg', 1, 'valScheduleConflictDmg', '', 'scheduleConflictDmg');
-    addLog('⚙️ プリセット適用: 【ゆったり検証】', 'log-info');
+    addLog('⚙️ プリセット: 【ゆったり】', 'log-info');
   } else if (presetName === 'hard') {
     setSliderVal('sldSpeed', 1.2, 'valSpeed', '倍', 'speedMultiplier');
     setSliderVal('sldInterval', 8, 'valInterval', '秒', 'baseIntervalSec');
@@ -2118,11 +2127,11 @@ function applyPreset(presetName) {
     setSliderVal('sldNextWait', 6, 'valNextWait', '秒', 'nextWaitSec');
     setSliderVal('sldScheduleConflictDmg', 3, 'valScheduleConflictDmg', '', 'scheduleConflictDmg');
     setScheduleLevel('level2');
-    addLog('⚙️ プリセット適用: 【修羅場】(着信8s/初手12s/追撃6s/衝突-3/Level 2)', 'log-warn');
+    addLog('⚙️ プリセット: 【修羅場】(着信8s/初手12s/追撃6s/衝突-3/Level 2)', 'log-warn');
   } else if (presetName === 'speed3x') {
     setSliderVal('sldSpeed', 3.0, 'valSpeed', '倍', 'speedMultiplier');
     document.getElementById('lblSpeed').textContent = '3.0x';
-    addLog('⚙️ プリセット適用: 【3倍速テスト】', 'log-info');
+    addLog('⚙️ プリセット: 【3倍速】', 'log-info');
   }
 }
 
