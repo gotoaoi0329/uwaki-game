@@ -1,6 +1,41 @@
 // api/chat.js - Vercel Serverless Function for Gemini API Relay
 // チームメンバーがAPIキー不要で遊べるようにサーバーサイドでGEMINI_API_KEYを秘匿・中継します
 
+let cachedModelName = null;
+
+// APIキーで利用可能な最適なGeminiモデルを自動検出
+async function resolveModel(apiKey) {
+  if (cachedModelName) return cachedModelName;
+
+  try {
+    const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+    if (listRes.ok) {
+      const data = await listRes.json();
+      const models = data.models || [];
+      const contentModels = models.filter(m =>
+        m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent')
+      );
+
+      // 優先順位: flash系 (thinking系などの低速モデルは除外)
+      const preferred = contentModels.find(m => m.name.includes('flash') && !m.name.includes('thinking'))
+                     || contentModels.find(m => m.name.includes('flash'))
+                     || contentModels.find(m => m.name.includes('gemini'))
+                     || contentModels[0];
+
+      if (preferred) {
+        const detected = preferred.name.replace(/^models\//, '');
+        console.log(`Auto-detected best Gemini model: ${detected}`);
+        cachedModelName = detected;
+        return detected;
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to query listModels:', err);
+  }
+
+  return 'gemini-2.5-flash';
+}
+
 export default async function handler(req, res) {
   // CORSヘッダー設定（GitHub Pages やローカル開発環境からの呼び出しを許可）
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -113,33 +148,59 @@ ${promptContext ? JSON.stringify(promptContext) : '（雑談または通常の�
 }
 `;
 
-    // Google Gemini REST API 呼び出し
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // モデル自動判別 & フォールバックループ
+    const detectedModel = await resolveModel(apiKey);
+    const candidateModels = [
+      detectedModel,
+      'gemini-2.5-flash',
+      'gemini-2.0-flash',
+      'gemini-1.5-flash-latest',
+      'gemini-1.5-flash',
+      'gemini-1.5-flash-8b'
+    ].filter((v, i, a) => v && a.indexOf(v) === i);
 
-    const geminiRes = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [{ text: systemPrompt }]
+    let geminiRes = null;
+    let lastErrBody = '';
+
+    for (const model of candidateModels) {
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      geminiRes = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [{ text: systemPrompt }]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.7,
+            responseMimeType: 'application/json'
           }
-        ],
-        generationConfig: {
-          temperature: 0.7,
-          responseMimeType: 'application/json'
-        }
-      })
-    });
+        })
+      });
 
-    if (!geminiRes.ok) {
-      const errBody = await geminiRes.text();
-      console.error('Gemini API Error:', geminiRes.status, errBody);
-      return res.status(geminiRes.status).json({
-        error: `Gemini API returned error ${geminiRes.status}`,
-        details: errBody
+      if (geminiRes.ok) {
+        cachedModelName = model;
+        break;
+      } else if (geminiRes.status === 404) {
+        lastErrBody = await geminiRes.text();
+        console.warn(`Model ${model} returned 404, trying next...`);
+        cachedModelName = null;
+        continue;
+      } else {
+        lastErrBody = await geminiRes.text();
+        break;
+      }
+    }
+
+    if (!geminiRes || !geminiRes.ok) {
+      console.error('Gemini API Error after trying models:', geminiRes?.status, lastErrBody);
+      return res.status(geminiRes ? geminiRes.status : 500).json({
+        error: `Gemini API returned error ${geminiRes ? geminiRes.status : 500}`,
+        details: lastErrBody
       });
     }
 
