@@ -503,6 +503,64 @@
     border-color: var(--accent-line);
   }
 
+  /* AI入力中インジケータ & バッジ */
+  .typing-bubble {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #1f2433;
+    padding: 8px 14px;
+    border-radius: 16px;
+    border-bottom-left-radius: 4px;
+    border: 1px solid var(--border-color);
+    font-size: 0.76rem;
+    color: var(--text-secondary);
+  }
+  .typing-dot {
+    width: 5px;
+    height: 5px;
+    background: #ced6e0;
+    border-radius: 50%;
+    display: inline-block;
+    animation: typingBounce 1.3s infinite ease-in-out;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.18s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.36s; }
+
+  @keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
+    30% { transform: translateY(-4px); opacity: 1; }
+  }
+
+  .ai-header-badge {
+    background: #1a2234;
+    border: 1px solid #2f3e58;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .ai-header-badge:hover {
+    border-color: var(--accent-line);
+    background: #222d45;
+  }
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .dot-ready { background: #2ecc71; box-shadow: 0 0 6px rgba(46, 204, 113, 0.6); }
+  .dot-busy { background: #3498db; box-shadow: 0 0 6px rgba(52, 152, 219, 0.6); animation: blink 0.8s infinite; }
+  .dot-fallback { background: #f39c12; box-shadow: 0 0 6px rgba(243, 156, 18, 0.6); }
+  .dot-error { background: #e74c3c; box-shadow: 0 0 6px rgba(231, 76, 60, 0.6); }
+
+
   /* 右ペイン：スケジュール帳 ＆ レベルデザイン調整 */
   .right-pane {
     display: flex;
@@ -808,6 +866,10 @@
   </div>
 
   <div class="header-right">
+    <div class="ai-header-badge" id="aiHeaderBadge" onclick="selectTab('tabAi')" title="クリックでAI中継設定を開く">
+      <span class="status-dot dot-ready" id="aiHeaderDot"></span>
+      <span id="aiHeaderStatusText">AI連携: 準備完了</span>
+    </div>
     <button class="btn" id="btnTogglePause">⏸️ 一時停止</button>
     <button class="btn btn-primary" id="btnRestart">🔄 最初から</button>
   </div>
@@ -887,6 +949,7 @@
   <div class="pane right-pane">
     <div class="tab-bar">
       <button class="tab-btn active" data-tab="tabSchedule">📅 予定表</button>
+      <button class="tab-btn" data-tab="tabAi">🤖 AI中継</button>
       <button class="tab-btn" data-tab="tabDebug">⚙️ 調整</button>
       <button class="tab-btn" data-tab="tabLog">📜 ログ</button>
     </div>
@@ -916,6 +979,62 @@
         <b style="color:#fff;">📌 スケジュール確認ルール:</b><br>
         ・仕事枠に「空いてるよ」と返答 ➔ <b>予定衝突 (Trust -2)</b><br>
         ・空き枠なら「OK」で <b>約束成立 (Trust維持)</b>
+      </div>
+    </div>
+
+    <!-- タブ: 生成AI中継設定 -->
+    <div class="tab-content" id="tabAi">
+      <div class="debug-group">
+        <div class="debug-title">
+          <span>🤖 Gemini 生成AI連携</span>
+          <span id="lblAiActiveBadge" style="color:#2ecc71; font-weight:bold; font-size:0.75rem;">有効 (ON)</span>
+        </div>
+        <div style="font-size:0.73rem; color:var(--text-secondary); line-height:1.4; margin-bottom:10px;">
+          自由入力されたメッセージを Gemini 1.5 Flash が解析。<br>
+          <b>Judge（地雷・予定判定）</b> と <b>Writer（キャラ口調返信生成）</b> をリアルタイムに実行します。
+        </div>
+        <label style="display:flex; align-items:center; gap:8px; font-size:0.78rem; cursor:pointer; margin-bottom:6px;">
+          <input type="checkbox" id="chkAiEnabled" checked onchange="toggleAiEnabled(this.checked)">
+          <span>Gemini 生成AIモードを有効にする</span>
+        </label>
+      </div>
+
+      <div class="debug-group">
+        <div class="debug-title">
+          <span>🌐 サーバー中継 (Proxy) 設定</span>
+        </div>
+        <div style="font-size:0.72rem; color:var(--text-secondary); margin-bottom:6px;">
+          Vercelデプロイ時は <code>/api/chat</code> で自動連携されます。<br>
+          外部中継URLを指定することも可能です。
+        </div>
+        <div style="display:flex; gap:6px; margin-bottom:6px;">
+          <input type="text" class="text-input" id="txtProxyUrl" style="font-size:0.74rem; padding:5px;" placeholder="/api/chat">
+          <button class="btn" style="font-size:0.72rem;" onclick="resetProxyUrl()">リセット</button>
+        </div>
+        <button class="btn btn-primary" id="btnTestAiConnection" style="width:100%; justify-content:center; margin-top:4px;" onclick="testAiConnection()">⚡ 中継サーバー接続テスト</button>
+        <div id="aiTestResult" style="font-size:0.72rem; margin-top:6px; min-height:16px;"></div>
+      </div>
+
+      <div class="debug-group">
+        <div class="debug-title">
+          <span>🔑 直接 API キー設定 (任意・ローカル用)</span>
+        </div>
+        <div style="font-size:0.72rem; color:var(--text-secondary); margin-bottom:6px;">
+          中継サーバーを使わず、ブラウザから直接 Gemini API を呼び出す場合に入力してください（ブラウザ内にのみ保存されます）。
+        </div>
+        <input type="password" class="text-input" id="txtDirectApiKey" style="width:100%; font-size:0.74rem; padding:5px; margin-bottom:6px;" placeholder="AIzaSy...">
+        <div style="display:flex; justify-content:flex-end;">
+          <button class="btn" style="font-size:0.72rem;" onclick="saveDirectApiKey()">キー保存</button>
+        </div>
+      </div>
+
+      <div class="debug-group">
+        <div class="debug-title">
+          <span>🛡️ 自動フォールバック保護</span>
+        </div>
+        <div style="font-size:0.72rem; color:var(--text-secondary); line-height:1.4;">
+          Gemini APIの無料枠制限（429エラー）やオフライン時は、<b>自動的にローカルのルールベースエンジンに切り替わり</b>、ゲームが絶対に途中で停止しません。
+        </div>
       </div>
     </div>
 
@@ -1477,6 +1596,13 @@ const state = {
     nameTraps: 0,
     patienceZeroCount: 0,
     trustLossTotal: 0
+  },
+
+  ai: {
+    enabled: localStorage.getItem('uwaki_ai_enabled') !== 'false',
+    proxyUrl: localStorage.getItem('uwaki_proxy_url') || '/api/chat',
+    directApiKey: localStorage.getItem('uwaki_direct_api_key') || '',
+    status: 'ready'
   }
 };
 
@@ -1500,6 +1626,7 @@ function initGame() {
     char.hasUnrepliedMsg = false;
     char.currentPrompt = null;
     char.poolIndex = 0;
+    char.isTyping = false;
   });
 
   state.activeCharId = state.characters[0].id;
@@ -1667,7 +1794,7 @@ function updateCharacters(dt) {
 /* =========================================================================
    返信処理
    ========================================================================= */
-function handleSendMessage(text, replyMeta = null) {
+async function handleSendMessage(text, replyMeta = null) {
   const char = state.characters.find(c => c.id === state.activeCharId);
   if (!char) return;
 
@@ -1686,14 +1813,207 @@ function handleSendMessage(text, replyMeta = null) {
   addLog(`📤 [送信] to ${char.name}: 「${text}」`, 'log-success');
 
   const prompt = char.currentPrompt;
-  evaluateReply(char, text, replyMeta, prompt);
+  char.currentPrompt = null;
 
   renderChatList();
   renderActiveChat();
   renderGauges();
+
+  // AIモードが有効な場合
+  if (state.ai && state.ai.enabled) {
+    char.isTyping = true;
+    renderActiveChat();
+    setFormDisabled(true);
+    setAiHeaderStatus('busy', `${char.name.split(' ')[0]} 入力中...`);
+
+    try {
+      const aiData = await callAiEngine(char, text, replyMeta, prompt);
+      char.isTyping = false;
+      renderActiveChat();
+      setAiHeaderStatus('ready', 'AI連携: 正常');
+      applyAiDecision(char, text, aiData, prompt);
+    } catch (err) {
+      console.warn('AI call failed, falling back to local:', err);
+      char.isTyping = false;
+      renderActiveChat();
+      setAiHeaderStatus('fallback', 'AI: ローカル判定中');
+      addLog(`⚠️ [AI通信エラー: ${err.message}] ローカルルールで判定を継続します`, 'log-warn');
+      evaluateReplyLocal(char, text, replyMeta, prompt);
+    } finally {
+      char.isTyping = false;
+      setFormDisabled(false);
+      renderActiveChat();
+      renderChatList();
+      renderGauges();
+    }
+  } else {
+    evaluateReplyLocal(char, text, replyMeta, prompt);
+  }
 }
 
-function evaluateReply(char, text, replyMeta, prompt) {
+// AIの判定結果をゲーム状態へ反映
+function applyAiDecision(char, playerText, data, prompt) {
+  const result = data.result || 'safe';
+  const reason = data.reason || '';
+  const replyText = data.replyText || '了解したわ。';
+
+  // 1. 即死判定 (名前ミス・AI自白など)
+  if (result === 'instant_gameover') {
+    char.history.push({
+      sender: 'incoming',
+      text: replyText,
+      time: getCurrentGameTimeStr()
+    });
+    SoundEffect.notify();
+    renderChatList();
+    renderActiveChat();
+    triggerInstantGameOver(char, reason || '地雷発言・自白検知');
+    return;
+  }
+
+  // 2. 予定衝突
+  if (result === 'conflict' || data.scheduleAction === 'conflict') {
+    state.stats.scheduleConflicts++;
+    const dmg = state.config.scheduleConflictDmg;
+    applyDamage(char, dmg, reason || '予定衝突！');
+    scheduleReaction(char, replyText, 400);
+    return;
+  }
+
+  // 3. 口調不一致・不審ダメージ
+  if (result === 'damage') {
+    const dmg = Math.abs(data.trustDelta) || 1;
+    applyDamage(char, dmg, reason || '口調の不一致・不審な発言');
+    scheduleReaction(char, replyText, 400);
+    return;
+  }
+
+  // 4. 安全（約束確定または回避）
+  if (data.scheduleAction === 'confirm') {
+    const targetSlot = data.targetSlot || prompt?.targetSlot;
+    if (targetSlot && targetSlot.day && targetSlot.time) {
+      const currentLvl = state.config.currentScheduleLevel;
+      const slotKey = `${targetSlot.day}_${targetSlot.time}`;
+      const slotInfo = SCHEDULE_DATA[currentLvl]?.slots[slotKey];
+      if (slotInfo) {
+        slotInfo.type = 'date';
+        slotInfo.text = `${char.name.split(' ')[0]}約`;
+        renderSchedule();
+        addLog(`📅 [予定確定] ${char.name} と ${targetSlot.day}曜${targetSlot.time} の約束を帳に記入しました！`, 'log-success');
+      }
+    }
+  } else if (data.scheduleAction === 'decline') {
+    addLog(`🛡️ [回避] ${char.name} の誘いを安全に断りました`, 'log-info');
+  }
+
+  SoundEffect.success();
+  addLog(`✨ [安全] ${char.name}: 「${replyText}」`, 'log-info');
+  scheduleReaction(char, replyText, 400);
+}
+
+// AI中継 / 直接API呼び出し処理
+async function callAiEngine(char, playerText, replyMeta, prompt) {
+  // 直接APIキーが設定されている場合はブラウザから直接Geminiを呼ぶ
+  if (state.ai.directApiKey) {
+    return await callGeminiDirect(state.ai.directApiKey, char, playerText, replyMeta, prompt);
+  }
+
+  // 中継サーバー (Proxy) を呼び出す
+  const proxyUrl = state.ai.proxyUrl || '/api/chat';
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 6500); // 6.5秒タイムアウト
+
+  const payload = {
+    character: {
+      id: char.id,
+      name: char.name,
+      roleTag: char.roleTag,
+      bio: char.bio,
+      type: char.type
+    },
+    otherCharacters: state.characters
+      .filter(c => c.id !== char.id)
+      .map(c => ({ name: c.name, roleTag: c.roleTag })),
+    playerText: playerText,
+    chatHistory: char.history.slice(-8),
+    scheduleContext: SCHEDULE_DATA[state.config.currentScheduleLevel]?.slots || {},
+    promptContext: prompt
+  };
+
+  try {
+    const res = await fetch(proxyUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Proxy error ${res.status}: ${errText}`);
+    }
+
+    return await res.json();
+  } catch (err) {
+    clearTimeout(timeoutId);
+    throw err;
+  }
+}
+
+// ブラウザからの直接 Gemini API 呼び出し (ローカルテスト用)
+async function callGeminiDirect(apiKey, char, playerText, replyMeta, prompt) {
+  const otherCharacters = state.characters.filter(c => c.id !== char.id);
+  const scheduleContext = SCHEDULE_DATA[state.config.currentScheduleLevel]?.slots || {};
+  
+  const systemPrompt = `
+あなたは恋愛修羅場シミュレーションゲーム「浮気ゲーム」の判定(Judge)および相手キャラ(Writer)です。
+相手キャラ: ${char.name} (${char.roleTag}) - ${char.bio}
+他の浮気相手の名前（呼び間違え地雷）: ${otherCharacters.map(c => c.name).join('、')}
+現在の予定表: ${JSON.stringify(scheduleContext)}
+プレイヤーの返信: 「${playerText}」
+直前の問いかけ: ${prompt ? JSON.stringify(prompt) : 'なし'}
+
+他のキャラの名前呼び間違いやAI自白は instant_gameover。
+予定が既に埋まっている枠への承諾は conflict (trustDelta: -2)。
+空き枠への承諾は safe (scheduleAction: confirm)。
+関係性に合わない失礼・不審は damage (trustDelta: -1)。
+キャラの口調に合わせた1〜2文のリアルなLINE返信文 (replyText) を生成してください。
+
+次のJSONのみ返してください:
+{
+  "result": "safe" | "damage" | "conflict" | "instant_gameover",
+  "reason": "判定理由",
+  "trustDelta": 0,
+  "scheduleAction": "none" | "confirm" | "conflict" | "decline",
+  "targetSlot": ${prompt?.targetSlot ? JSON.stringify(prompt.targetSlot) : 'null'},
+  "replyText": "相手キャラの返信"
+}
+`;
+
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  const res = await fetch(apiUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: systemPrompt }] }],
+      generationConfig: { temperature: 0.7, responseMimeType: 'application/json' }
+    })
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Gemini direct API error ${res.status}: ${errText}`);
+  }
+
+  const data = await res.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  const cleanJson = text.replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim();
+  return JSON.parse(cleanJson);
+}
+
+// 従来のルールベース判定エンジン（AI無効時および通信失敗時のフォールバック）
+function evaluateReplyLocal(char, text, replyMeta, prompt) {
   char.currentPrompt = null;
 
   if (replyMeta) {
@@ -1764,7 +2084,7 @@ function evaluateReply(char, text, replyMeta, prompt) {
   scheduleReaction(char, reactMsg);
 }
 
-function scheduleReaction(char, text) {
+function scheduleReaction(char, text, delay = 1200) {
   setTimeout(() => {
     if (state.isGameOver || state.isCleared) return;
     char.history.push({
@@ -1777,7 +2097,7 @@ function scheduleReaction(char, text) {
     if (char.id === state.activeCharId) {
       renderActiveChat();
     }
-  }, 1200);
+  }, delay);
 }
 
 function checkScheduleAnswer(char, day, time, answerAccepted, prompt) {
@@ -1953,6 +2273,21 @@ function renderActiveChat() {
     `;
     historyBox.appendChild(row);
   });
+
+  // AI入力中インジケータ
+  if (char.isTyping) {
+    const typingRow = document.createElement('div');
+    typingRow.className = 'msg-row incoming';
+    typingRow.innerHTML = `
+      <div class="typing-bubble">
+        <span>${escapeHtml(char.name)} が入力中</span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+      </div>
+    `;
+    historyBox.appendChild(typingRow);
+  }
 
   // 最下部へスクロール
   scrollToChatBottom();
@@ -2215,7 +2550,117 @@ function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+/* =========================================================================
+   AI設定 & ヘルパー関数
+   ========================================================================= */
+function selectTab(tabId) {
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.getAttribute('data-tab') === tabId);
+  });
+  document.querySelectorAll('.tab-content').forEach(c => {
+    c.classList.toggle('active', c.id === tabId);
+  });
+}
+
+function setAiHeaderStatus(type, text) {
+  const dot = document.getElementById('aiHeaderDot');
+  const label = document.getElementById('aiHeaderStatusText');
+  if (dot) dot.className = `status-dot dot-${type}`;
+  if (label) label.textContent = text;
+}
+
+function setFormDisabled(disabled) {
+  const input = document.getElementById('chatInput');
+  const submitBtn = document.querySelector('#chatInputForm button[type="submit"]');
+  if (input) input.disabled = disabled;
+  if (submitBtn) submitBtn.disabled = disabled;
+  document.querySelectorAll('.quick-reply-btn').forEach(b => b.disabled = disabled);
+}
+
+function toggleAiEnabled(enabled) {
+  state.ai.enabled = enabled;
+  localStorage.setItem('uwaki_ai_enabled', enabled);
+  const badge = document.getElementById('lblAiActiveBadge');
+  if (badge) {
+    badge.textContent = enabled ? '有効 (ON)' : '無効 (OFF)';
+    badge.style.color = enabled ? '#2ecc71' : '#a4b0be';
+  }
+  setAiHeaderStatus(enabled ? 'ready' : 'fallback', enabled ? 'AI連携: 正常' : 'AI: 無効(ローカル)');
+  addLog(`🤖 生成AIモードを 【${enabled ? '有効' : '無効（ローカル判定）'}】 に切り替えました`, 'log-info');
+}
+
+function resetProxyUrl() {
+  const input = document.getElementById('txtProxyUrl');
+  const defUrl = '/api/chat';
+  input.value = defUrl;
+  state.ai.proxyUrl = defUrl;
+  localStorage.setItem('uwaki_proxy_url', defUrl);
+  addLog('🌐 中継サーバーURLをデフォルト [/api/chat] にリセットしました', 'log-info');
+}
+
+function saveDirectApiKey() {
+  const input = document.getElementById('txtDirectApiKey');
+  const key = input.value.trim();
+  state.ai.directApiKey = key;
+  localStorage.setItem('uwaki_direct_api_key', key);
+  if (key) {
+    addLog('🔑 直接Gemini APIキーをブラウザに保存しました', 'log-success');
+    alert('Gemini APIキーを保存しました（ブラウザ内にのみ保存されます）');
+  } else {
+    addLog('🔑 直接Gemini APIキーを解除しました', 'log-info');
+    alert('Gemini APIキーを解除しました');
+  }
+}
+
+async function testAiConnection() {
+  const resultDiv = document.getElementById('aiTestResult');
+  const btn = document.getElementById('btnTestAiConnection');
+  resultDiv.innerHTML = '<span style="color:#70a1ff;">⏳ 接続テスト中...</span>';
+  btn.disabled = true;
+
+  try {
+    const testChar = state.characters[0] || CHARACTERS_DATA[0];
+    const res = await callAiEngine(testChar, 'お疲れ様です！', null, null);
+    resultDiv.innerHTML = `<span style="color:#2ecc71;">✅ 接続成功！ AI返信: 「${escapeHtml(res.replyText || 'OK')}」</span>`;
+    setAiHeaderStatus('ready', 'AI連携: 正常');
+    addLog(`🤖 [AI接続テスト成功] 返信: 「${res.replyText}」`, 'log-success');
+  } catch (err) {
+    resultDiv.innerHTML = `<span style="color:#ff4757;">❌ 接続失敗: ${escapeHtml(err.message)}</span>`;
+    setAiHeaderStatus('fallback', 'AI: 接続エラー');
+    addLog(`⚠️ [AI接続テスト失敗] ${err.message}`, 'log-danger');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 window.addEventListener('DOMContentLoaded', () => {
+  // URLクエリパラメータの反映 (?proxy=... / ?key=...)
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('proxy')) {
+    state.ai.proxyUrl = urlParams.get('proxy');
+    localStorage.setItem('uwaki_proxy_url', state.ai.proxyUrl);
+  }
+  if (urlParams.get('key')) {
+    state.ai.directApiKey = urlParams.get('key');
+    localStorage.setItem('uwaki_direct_api_key', state.ai.directApiKey);
+  }
+
+  // UI入力値の同期
+  const chkAi = document.getElementById('chkAiEnabled');
+  if (chkAi) chkAi.checked = state.ai.enabled;
+  const txtProxy = document.getElementById('txtProxyUrl');
+  if (txtProxy) {
+    txtProxy.value = state.ai.proxyUrl;
+    txtProxy.addEventListener('change', (e) => {
+      state.ai.proxyUrl = e.target.value.trim() || '/api/chat';
+      localStorage.setItem('uwaki_proxy_url', state.ai.proxyUrl);
+    });
+  }
+  const txtDirectKey = document.getElementById('txtDirectApiKey');
+  if (txtDirectKey) {
+    txtDirectKey.value = state.ai.directApiKey;
+  }
+
   initGame();
   requestAnimationFrame((timestamp) => {
     lastTimestamp = timestamp;
